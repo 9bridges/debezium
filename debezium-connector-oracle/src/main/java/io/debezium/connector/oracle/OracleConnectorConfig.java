@@ -694,7 +694,21 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
                         connectorConfig);
             }
         },
+        FZS("fzs") {
+            @Override
+            public String getConnectionUrl() {
+                return "jdbc:oracle:oci:@${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
+            }
 
+            @Override
+            public StreamingAdapter getInstance(OracleConnectorConfig connectorConfig) {
+                return Instantiator.getInstanceWithProvidedConstructorType(
+                        "io.debezium.connector.oracle.fzs.FzsAdapter",
+                        StreamingAdapter.class::getClassLoader,
+                        OracleConnectorConfig.class,
+                        connectorConfig);
+            }
+        },
         /**
          * This is based on LogMiner utility.
          */
@@ -712,6 +726,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
                         OracleConnectorConfig.class,
                         connectorConfig);
             }
+
         };
 
         public abstract String getConnectionUrl();
