@@ -28,17 +28,9 @@ public class FzsOracleOffsetContextLoader implements OffsetContext.Loader<Oracle
         boolean snapshot = Boolean.TRUE.equals(offset.get(SourceInfo.SNAPSHOT_KEY));
         boolean snapshotCompleted = Boolean.TRUE.equals(offset.get(OracleOffsetContext.SNAPSHOT_COMPLETED_KEY));
 
-        String lcrPosition = (String) offset.get(SourceInfo.LCR_POSITION_KEY);
+        final Scn scn = OracleOffsetContext.getScnFromOffsetMapByKey(offset, SourceInfo.SCN_KEY);
 
-        final Scn scn;
-        if (lcrPosition != null) {
-            scn = LcrPosition.valueOf(lcrPosition).getScn();
-        }
-        else {
-            scn = OracleOffsetContext.getScnFromOffsetMapByKey(offset, SourceInfo.SCN_KEY);
-        }
-
-        return new OracleOffsetContext(connectorConfig, scn, lcrPosition, snapshot, snapshotCompleted, TransactionContext.load(offset),
+        return new OracleOffsetContext(connectorConfig, scn, null, snapshot, snapshotCompleted, TransactionContext.load(offset),
                 SignalBasedIncrementalSnapshotContext.load(offset));
     }
 }
