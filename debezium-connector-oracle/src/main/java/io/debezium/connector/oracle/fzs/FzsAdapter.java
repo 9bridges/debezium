@@ -14,8 +14,6 @@ import io.debezium.connector.oracle.OracleOffsetContext;
 import io.debezium.connector.oracle.OraclePartition;
 import io.debezium.connector.oracle.OracleStreamingChangeEventSourceMetrics;
 import io.debezium.connector.oracle.OracleTaskContext;
-import io.debezium.connector.oracle.Scn;
-import io.debezium.connector.oracle.SourceInfo;
 import io.debezium.document.Document;
 import io.debezium.pipeline.ErrorHandler;
 import io.debezium.pipeline.EventDispatcher;
@@ -42,15 +40,8 @@ public class FzsAdapter extends AbstractStreamingAdapter {
     public HistoryRecordComparator getHistoryRecordComparator() {
         return new HistoryRecordComparator() {
             @Override
-            public boolean isPositionAtOrBefore(Document recorded, Document desired) {
-                final LcrPosition recordedPosition = LcrPosition.valueOf(recorded.getString(SourceInfo.LCR_POSITION_KEY));
-                final LcrPosition desiredPosition = LcrPosition.valueOf(desired.getString(SourceInfo.LCR_POSITION_KEY));
-                final Scn recordedScn = recordedPosition != null ? recordedPosition.getScn() : resolveScn(recorded);
-                final Scn desiredScn = desiredPosition != null ? desiredPosition.getScn() : resolveScn(desired);
-                if (recordedPosition != null && desiredPosition != null) {
-                    return recordedPosition.compareTo(desiredPosition) < 1;
-                }
-                return recordedScn.compareTo(desiredScn) < 1;
+            protected boolean isPositionAtOrBefore(Document recorded, Document desired) {
+                return resolveScn(recorded).compareTo(resolveScn(desired)) < 1;
             }
         };
     }
@@ -77,14 +68,5 @@ public class FzsAdapter extends AbstractStreamingAdapter {
                 clock,
                 schema,
                 streamingMetrics);
-    }
-
-    @Override
-    public TableNameCaseSensitivity getTableNameCaseSensitivity(OracleConnection connection) {
-        // Always use tablename case insensitivity true when on Oracle 11, otherwise false.
-        if (connection.getOracleVersion().getMajor() == 11) {
-            return TableNameCaseSensitivity.SENSITIVE;
-        }
-        return super.getTableNameCaseSensitivity(connection);
     }
 }

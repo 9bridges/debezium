@@ -5,71 +5,46 @@
  */
 package io.debezium.connector.oracle.fzs;
 
-import java.util.Map;
-
 import io.debezium.connector.oracle.BaseChangeRecordEmitter;
+import io.debezium.connector.oracle.fzs.entry.FzsDmlEntry;
 import io.debezium.data.Envelope.Operation;
 import io.debezium.pipeline.spi.OffsetContext;
 import io.debezium.pipeline.spi.Partition;
 import io.debezium.relational.Table;
 import io.debezium.util.Clock;
 
-import oracle.streams.ColumnValue;
-import oracle.streams.RowLCR;
+public class FzsChangeRecordEmitter extends BaseChangeRecordEmitter<Object> {
 
-public class FzsChangeRecordEmitter extends BaseChangeRecordEmitter<ColumnValue> {
+    private final FzsDmlEntry fzsDmlEntry;
 
-    private final RowLCR lcr;
-    private final Map<String, Object> oldChunkValues;
-    private final Map<String, Object> newChunkValues;
-
-    public FzsChangeRecordEmitter(Partition partition, OffsetContext offset, RowLCR lcr,
-                                  Map<String, Object> oldChunkValues, Map<String, Object> newChunkValues,
+    public FzsChangeRecordEmitter(Partition partition, OffsetContext offset, FzsDmlEntry lcr,
                                   Table table, Clock clock) {
         super(partition, offset, table, clock);
-        this.lcr = lcr;
-        this.oldChunkValues = oldChunkValues;
-        this.newChunkValues = newChunkValues;
+        this.fzsDmlEntry = lcr;
     }
 
     @Override
     protected Operation getOperation() {
-        switch (lcr.getCommandType()) {
-            case RowLCR.INSERT:
+        switch (fzsDmlEntry.getEventType()) {
+            case FzsDmlEntry.INSERT:
                 return Operation.CREATE;
-            case RowLCR.DELETE:
+            case FzsDmlEntry.DELETE:
                 return Operation.DELETE;
-            case RowLCR.UPDATE:
+            case FzsDmlEntry.UPDATE:
                 return Operation.UPDATE;
             default:
-                throw new IllegalArgumentException("Received event of unexpected command type: " + lcr);
+                throw new IllegalArgumentException("Received event of unexpected command type: " + fzsDmlEntry);
         }
     }
 
     @Override
     protected Object[] getOldColumnValues() {
-        return getColumnValues(lcr.getOldValues(), oldChunkValues);
+        return fzsDmlEntry.getOldValues();
     }
 
     @Override
     protected Object[] getNewColumnValues() {
-        return getColumnValues(lcr.getNewValues(), newChunkValues);
-    }
-
-    private Object[] getColumnValues(ColumnValue[] columnValues, Map<String, Object> chunkValues) {
-        Object[] values = new Object[table.columns().size()];
-        for (ColumnValue columnValue : columnValues) {
-            int index = table.columnWithName(columnValue.getColumnName()).position() - 1;
-            values[index] = columnValue.getColumnData();
-        }
-
-        // Overlay chunk values into non-chunk value array
-        for (Map.Entry<String, Object> entry : chunkValues.entrySet()) {
-            final int index = table.columnWithName(entry.getKey()).position() - 1;
-            values[index] = entry.getValue();
-        }
-
-        return values;
+        return fzsDmlEntry.getNewValues();
     }
 
 }
