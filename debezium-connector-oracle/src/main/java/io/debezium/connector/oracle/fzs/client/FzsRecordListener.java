@@ -5,8 +5,8 @@
  */
 package io.debezium.connector.oracle.fzs.client;
 
-import oracle.streams.LCR;
+import io.debezium.connector.oracle.fzs.entry.FzsEntry;
 
 public interface FzsRecordListener {
-    void process(LCR lcr);
+    void process(FzsEntry lcr);
 }
