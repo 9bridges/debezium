@@ -8,11 +8,12 @@ package io.debezium.connector.oracle.fzs.client;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.debezium.connector.oracle.fzs.entry.FzsEntry;
 import io.debezium.connector.oracle.fzs.entry.FzsParser;
 import io.debezium.connector.oracle.fzs.entry.SimpleFzsParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FzsProducer implements Runnable {
 
