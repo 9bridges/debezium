@@ -10,9 +10,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.debezium.connector.oracle.fzs.entry.FzsEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.debezium.connector.oracle.fzs.entry.FzsEntry;
 
 public class FzsClientStream {
     private static final Logger logger = LoggerFactory.getLogger(FzsClientStream.class);
@@ -31,7 +32,8 @@ public class FzsClientStream {
         if (processThread != null) {
             try {
                 processThread.join();
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 logger.warn("Waits for process thread failed : {}", e.getMessage());
                 triggerStop();
             }
@@ -55,7 +57,8 @@ public class FzsClientStream {
 
                     try {
                         lcr = recordQueue.poll(2000, TimeUnit.MILLISECONDS);
-                    } catch (InterruptedException e) {
+                    }
+                    catch (InterruptedException e) {
                         // ignore exception
                     }
                     if (lcr == null) {
