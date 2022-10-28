@@ -10,30 +10,28 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.debezium.connector.oracle.fzs.entry.FzsEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import oracle.streams.LCR;
 
 public class FzsClientStream {
     private static final Logger logger = LoggerFactory.getLogger(FzsClientStream.class);
     private Thread processThread = null;
-    private FzsConnection fzsConnection;
+    private final FzsProducer fzsProducer;
     private FzsRecordListener fzsRecordListener = null;
-    private final BlockingQueue<LCR> recordQueue;
+    private final BlockingQueue<FzsEntry> recordQueue;
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     public FzsClientStream(String ip, String port) {
         this.recordQueue = new LinkedBlockingQueue<>(20000);
-        this.fzsConnection = new SimpleFzsConnection(ip, port, recordQueue);
+        this.fzsProducer = new FzsProducer(ip, port, recordQueue);
     }
 
     public void join() {
         if (processThread != null) {
             try {
                 processThread.join();
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 logger.warn("Waits for process thread failed : {}", e.getMessage());
                 triggerStop();
             }
@@ -45,7 +43,6 @@ public class FzsClientStream {
             logger.info("Try to stop this client");
             join();
             processThread = null;
-            fzsConnection.stop();
             logger.info("Client stopped successfully");
         }
     }
@@ -54,12 +51,11 @@ public class FzsClientStream {
         if (started.compareAndSet(false, true)) {
             processThread = new Thread(() -> {
                 while (isRunning()) {
-                    LCR lcr = null;
+                    FzsEntry lcr = null;
 
                     try {
                         lcr = recordQueue.poll(2000, TimeUnit.MILLISECONDS);
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                         // ignore exception
                     }
                     if (lcr == null) {
@@ -74,7 +70,7 @@ public class FzsClientStream {
 
             processThread.setDaemon(false);
             processThread.start();
-            fzsConnection.run();
+            fzsProducer.run();
         }
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }

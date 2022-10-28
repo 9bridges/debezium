@@ -1,5 +1,7 @@
 package io.debezium.connector.oracle.fzs.entry;
 
+import oracle.sql.DATE;
+
 import java.math.BigInteger;
 
 public interface FzsEntry {
@@ -22,7 +24,7 @@ public interface FzsEntry {
 
     String getObjectOwner();
 
-    String getSourceTime();
+    DATE getSourceTime();
 
     String getScn();
 

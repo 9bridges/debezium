@@ -15,6 +15,7 @@ public class FzsClient {
     public void start() {
         stream.start();
     }
+
     public void stop() {
         stream.stop();
     }
