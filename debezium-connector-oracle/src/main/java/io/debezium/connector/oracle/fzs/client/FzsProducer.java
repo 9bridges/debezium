@@ -19,6 +19,7 @@ public class FzsProducer implements Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(FzsProducer.class);
     private final FzsConnection fzsConnection;
+    private Thread fzsConnectionTask;
     private final FzsParser fzsParser;
     private final BlockingQueue<FzsEntry> outQueue;
     private final AtomicBoolean started = new AtomicBoolean(false);
@@ -28,6 +29,7 @@ public class FzsProducer implements Runnable {
         fzsConnection.setIpAndPort(ip, port);
         fzsParser = new SimpleFzsParser();
         this.outQueue = outQueue;
+        fzsConnectionTask = new Thread(fzsConnection);
     }
 
     private boolean isRunning() {
@@ -36,6 +38,7 @@ public class FzsProducer implements Runnable {
 
     public void stop() {
         started.compareAndSet(true, false);
+        fzsConnectionTask.stop();
         logger.info("FzsProducer begin stop.");
     }
 
@@ -43,7 +46,7 @@ public class FzsProducer implements Runnable {
     public void run() {
         if (started.compareAndSet(false, true)) {
             logger.info("FzsProducer started.");
-            new Thread(fzsConnection).start();
+            fzsConnectionTask.start();
             while (isRunning()) {
                 fzsParser.parser(fzsConnection.poll(), outQueue);
             }

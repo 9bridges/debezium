@@ -65,7 +65,7 @@ public class FzsDmlEntryImpl implements FzsDmlEntry {
                 parseUpdate(byteBuf);
                 break;
             case COMMIT:
-                this.transactionId = Long.toString(byteBuf.readerIndex(1).readLong());
+                this.scn = byteBuf.readerIndex(5).readLong();
             default:
                 break; // commit operator only need set opCode
         }
