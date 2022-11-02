@@ -5,13 +5,36 @@
  */
 package io.debezium.connector.oracle.fzs.client;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SimpleFzsConnection implements FzsConnection {
+    private Logger logger = LoggerFactory.getLogger(SimpleFzsConnection.class);
     private String ip;
     private String port;
     private BlockingQueue<byte[]> outQueue;
+
+    SimpleFzsConnection() {
+        outQueue = new LinkedBlockingQueue<>(20000);
+    }
+
+    public static byte[] file2byte(String path) {
+        try {
+            FileInputStream in = new FileInputStream(new File(path));
+            byte[] data = new byte[in.available()];
+            in.read(data);
+            in.close();
+            return data;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     @Override
     public void setIpAndPort(String ip, String port) {
@@ -22,11 +45,29 @@ public class SimpleFzsConnection implements FzsConnection {
 
     @Override
     public byte[] poll() {
-        return outQueue.poll();
+        logger.info("FzsConnection begin poll");
+        byte[] bytes = null;
+        try {
+            bytes = outQueue.take();
+        } catch (InterruptedException ignored) {
+            // do nothing
+        }
+        return bytes;
     }
 
     @Override
     public void run() {
         // recive fzs from source
+        while (true) {
+            try {
+                byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\4.fzs");
+
+                logger.info("FzsConnection put a bytes");
+                outQueue.put(bytes);
+                Thread.sleep(300000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
