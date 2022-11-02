@@ -5,7 +5,7 @@
  */
 package io.debezium.connector.oracle.fzs.entry;
 
-import oracle.sql.DATE;
+import java.time.Instant;
 
 public interface FzsEntry {
 
@@ -21,19 +21,19 @@ public interface FzsEntry {
 
     void setTransactionId(String var1);
 
-    void setEventType(String var1);
+    void setEventType(OpCode var1);
 
     String getObjectName();
 
     String getObjectOwner();
 
-    DATE getSourceTime();
+    Instant getSourceTime();
 
     long getScn();
 
     String getTransactionId();
 
-    String getEventType();
+    OpCode getEventType();
 
     String getDatabaseName();
 

@@ -26,11 +26,11 @@ public class FzsChangeRecordEmitter extends BaseChangeRecordEmitter<Object> {
     @Override
     protected Operation getOperation() {
         switch (fzsDmlEntry.getEventType()) {
-            case FzsDmlEntry.INSERT:
+            case INSERT:
                 return Operation.CREATE;
-            case FzsDmlEntry.DELETE:
+            case DELETE:
                 return Operation.DELETE;
-            case FzsDmlEntry.UPDATE:
+            case UPDATE:
                 return Operation.UPDATE;
             default:
                 throw new IllegalArgumentException("Received event of unexpected command type: " + fzsDmlEntry);
@@ -44,7 +44,8 @@ public class FzsChangeRecordEmitter extends BaseChangeRecordEmitter<Object> {
 
     @Override
     protected Object[] getNewColumnValues() {
-        return fzsDmlEntry.getNewValues();
+        Object[] tmp = fzsDmlEntry.getNewValues();
+        return tmp;
     }
 
 }

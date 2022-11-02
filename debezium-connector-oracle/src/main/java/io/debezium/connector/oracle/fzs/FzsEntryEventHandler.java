@@ -23,6 +23,7 @@ import io.debezium.connector.oracle.Scn;
 import io.debezium.connector.oracle.fzs.entry.FzsDdlEntry;
 import io.debezium.connector.oracle.fzs.entry.FzsDmlEntry;
 import io.debezium.connector.oracle.fzs.entry.FzsEntry;
+import io.debezium.connector.oracle.fzs.entry.OpCode;
 import io.debezium.pipeline.ErrorHandler;
 import io.debezium.pipeline.EventDispatcher;
 import io.debezium.relational.Table;
@@ -58,7 +59,7 @@ class FzsEntryEventHandler {
     }
 
     public void processFzsEntry(FzsEntry fzsEntry) {
-        LOGGER.trace("Received LCR {}", fzsEntry);
+        LOGGER.info("Received LCR {}", fzsEntry.getEventType());
 
         final Scn fzsEntryScn = Scn.valueOf(fzsEntry.getScn());
 
@@ -75,29 +76,26 @@ class FzsEntryEventHandler {
         offsetContext.setScn(Scn.valueOf(fzsEntry.getScn()));
         offsetContext.setTransactionId(fzsEntry.getTransactionId());
         offsetContext.tableEvent(new TableId(fzsEntry.getDatabaseName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName()),
-                fzsEntry.getSourceTime().timestampValue().toInstant());
-
+                fzsEntry.getSourceTime());
         try {
             if (fzsEntry instanceof FzsDmlEntry) {
+                LOGGER.info("Received DML LCR {}", fzsEntry.getEventType());
                 processDmlEntry((FzsDmlEntry) fzsEntry);
-            }
-            else if (fzsEntry instanceof FzsDdlEntry) {
+            } else if (fzsEntry instanceof FzsDdlEntry) {
                 dispatchSchemaChangeEvent((FzsDdlEntry) fzsEntry);
             }
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.interrupted();
             LOGGER.info("Received signal to stop, event loop will halt");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             errorHandler.setProducerThrowable(e);
         }
     }
 
     private void processDmlEntry(FzsDmlEntry fzsDmlEntry) throws InterruptedException {
-        LOGGER.debug("Processing DML event {}", fzsDmlEntry);
+        LOGGER.info("Processing DML event {}", fzsDmlEntry.getEventType());
 
-        if (FzsDmlEntry.COMMIT.equals(fzsDmlEntry.getEventType())) {
+        if (fzsDmlEntry.getEventType() == OpCode.COMMIT) {
             dispatcher.dispatchTransactionCommittedEvent(partition, offsetContext);
             return;
         }
@@ -150,15 +148,14 @@ class FzsEntryEventHandler {
                         ddlLcr.getObjectOwner(),
                         ddlLcr.getDDLString(),
                         schema,
-                        ddlLcr.getSourceTime().timestampValue().toInstant(),
+                        ddlLcr.getSourceTime(),
                         streamingMetrics));
     }
 
     private TableId getTableId(FzsEntry fzsEntry) {
         if (!this.tablenameCaseInsensitive) {
             return new TableId(fzsEntry.getDatabaseName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName());
-        }
-        else {
+        } else {
             return new TableId(fzsEntry.getDatabaseName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName().toLowerCase());
         }
     }
@@ -172,8 +169,7 @@ class FzsEntryEventHandler {
                 connection.setSessionToPdb(pdbName);
             }
             return connection.getTableMetadataDdl(tableId);
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             throw new DebeziumException("Failed to get table DDL metadata for: " + tableId, e);
         }
     }

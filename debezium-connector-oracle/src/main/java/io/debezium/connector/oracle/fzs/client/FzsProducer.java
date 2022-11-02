@@ -43,7 +43,7 @@ public class FzsProducer implements Runnable {
     public void run() {
         if (started.compareAndSet(false, true)) {
             logger.info("FzsProducer started.");
-            fzsConnection.run();
+            new Thread(fzsConnection).start();
             while (isRunning()) {
                 fzsParser.parser(fzsConnection.poll(), outQueue);
             }

@@ -32,8 +32,7 @@ public class FzsClientStream {
         if (processThread != null) {
             try {
                 processThread.join();
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 logger.warn("Waits for process thread failed : {}", e.getMessage());
                 triggerStop();
             }
@@ -57,8 +56,7 @@ public class FzsClientStream {
 
                     try {
                         lcr = recordQueue.poll(2000, TimeUnit.MILLISECONDS);
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                         // ignore exception
                     }
                     if (lcr == null) {
