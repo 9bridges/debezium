@@ -27,7 +27,6 @@ public class SimpleFzsParser implements FzsParser {
                 byte[] data = copyBytesByPos(bytes, offset, dataLength);
                 try {
                     OpCode code = OpCode.from(data[ENTRY_TYPE_OFFSET] & 0xff);
-                    logger.info("FzsParser a record: {}", code.name());
                     switch (code) {
                         case INSERT:
                         case UPDATE:

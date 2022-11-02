@@ -64,7 +64,7 @@ public class SimpleFzsConnection implements FzsConnection {
 
                 logger.info("FzsConnection put a bytes");
                 outQueue.put(bytes);
-                Thread.sleep(300000);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

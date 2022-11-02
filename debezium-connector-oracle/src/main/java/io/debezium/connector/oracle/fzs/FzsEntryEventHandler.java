@@ -59,7 +59,7 @@ class FzsEntryEventHandler {
     }
 
     public void processFzsEntry(FzsEntry fzsEntry) {
-        LOGGER.info("Received LCR {}", fzsEntry.getEventType());
+        LOGGER.trace("Received LCR {}", fzsEntry.getEventType());
 
         final Scn fzsEntryScn = Scn.valueOf(fzsEntry.getScn());
 
@@ -79,7 +79,7 @@ class FzsEntryEventHandler {
                 fzsEntry.getSourceTime());
         try {
             if (fzsEntry instanceof FzsDmlEntry) {
-                LOGGER.info("Received DML LCR {}", fzsEntry.getEventType());
+                LOGGER.info("Received DML LCR {}", fzsEntry);
                 processDmlEntry((FzsDmlEntry) fzsEntry);
             } else if (fzsEntry instanceof FzsDdlEntry) {
                 dispatchSchemaChangeEvent((FzsDdlEntry) fzsEntry);
@@ -93,8 +93,7 @@ class FzsEntryEventHandler {
     }
 
     private void processDmlEntry(FzsDmlEntry fzsDmlEntry) throws InterruptedException {
-        LOGGER.info("Processing DML event {}", fzsDmlEntry.getEventType());
-
+        LOGGER.trace("Processing DML event {}", fzsDmlEntry.getEventType());
         if (fzsDmlEntry.getEventType() == OpCode.COMMIT) {
             dispatcher.dispatchTransactionCommittedEvent(partition, offsetContext);
             return;
