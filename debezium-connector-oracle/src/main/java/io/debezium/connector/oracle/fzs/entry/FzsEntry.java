@@ -5,24 +5,10 @@
  */
 package io.debezium.connector.oracle.fzs.entry;
 
+import java.io.IOException;
 import java.time.Instant;
 
 public interface FzsEntry {
-
-    void setDatabaseName(String var1);
-
-    void setObjectName(String name);
-
-    void setObjectOwner(String name);
-
-    void setSourceTime(String var1);
-
-    void setScn(long scn);
-
-    void setTransactionId(String var1);
-
-    void setEventType(OpCode var1);
-
     String getObjectName();
 
     String getObjectOwner();
@@ -37,4 +23,5 @@ public interface FzsEntry {
 
     String getDatabaseName();
 
+    void parse(byte[] data) throws IOException;
 }

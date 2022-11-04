@@ -70,7 +70,7 @@ class FzsEntryEventHandler {
                 LOGGER.debug("Ignoring change event with already processed SCN {}, last SCN {}",
                         fzsEntryScn, offsetScn);
             }
-            return;
+            /* return; */
         }
 
         offsetContext.setScn(Scn.valueOf(fzsEntry.getScn()));
@@ -81,13 +81,16 @@ class FzsEntryEventHandler {
             if (fzsEntry instanceof FzsDmlEntry) {
                 LOGGER.info("Received DML LCR {}", fzsEntry);
                 processDmlEntry((FzsDmlEntry) fzsEntry);
-            } else if (fzsEntry instanceof FzsDdlEntry) {
+            }
+            else if (fzsEntry instanceof FzsDdlEntry) {
                 dispatchSchemaChangeEvent((FzsDdlEntry) fzsEntry);
             }
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             Thread.interrupted();
             LOGGER.info("Received signal to stop, event loop will halt");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             errorHandler.setProducerThrowable(e);
         }
     }
@@ -154,7 +157,8 @@ class FzsEntryEventHandler {
     private TableId getTableId(FzsEntry fzsEntry) {
         if (!this.tablenameCaseInsensitive) {
             return new TableId(fzsEntry.getDatabaseName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName());
-        } else {
+        }
+        else {
             return new TableId(fzsEntry.getDatabaseName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName().toLowerCase());
         }
     }
@@ -168,7 +172,8 @@ class FzsEntryEventHandler {
                 connection.setSessionToPdb(pdbName);
             }
             return connection.getTableMetadataDdl(tableId);
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new DebeziumException("Failed to get table DDL metadata for: " + tableId, e);
         }
     }

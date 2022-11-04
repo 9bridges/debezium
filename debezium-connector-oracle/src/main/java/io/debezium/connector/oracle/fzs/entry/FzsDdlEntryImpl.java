@@ -11,21 +11,18 @@ public class FzsDdlEntryImpl implements FzsDdlEntry {
     public FzsDdlEntryImpl() {
     }
 
-    public FzsDdlEntryImpl parse(byte[] bytes) {
-        return this;
+    public void parse(byte[] bytes) {
+        // TODO: parse ddl entry
     }
 
-    @Override
     public void setDDLString(String ddlString) {
 
     }
 
-    @Override
     public void setObjectType(String objectType) {
 
     }
 
-    @Override
     public String getDDLString() {
         return null;
     }
@@ -35,37 +32,30 @@ public class FzsDdlEntryImpl implements FzsDdlEntry {
         return null;
     }
 
-    @Override
     public void setDatabaseName(String var1) {
 
     }
 
-    @Override
     public void setObjectName(String name) {
 
     }
 
-    @Override
     public void setObjectOwner(String name) {
 
     }
 
-    @Override
-    public void setSourceTime(String var1) {
+    public void setSourceTime(Instant var1) {
 
     }
 
-    @Override
     public void setScn(long scn) {
 
     }
 
-    @Override
     public void setTransactionId(String var1) {
 
     }
 
-    @Override
     public void setEventType(OpCode var1) {
 
     }
