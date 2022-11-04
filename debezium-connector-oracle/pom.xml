@@ -48,14 +48,8 @@
             <artifactId>protostream-processor</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.8.1</version>
-        </dependency>
-        <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.1.77.Final</version>
+            <artifactId>netty-buffer</artifactId>
         </dependency>
         <!-- Testing -->
         <dependency>
