@@ -62,7 +62,7 @@ public class SimpleFzsConnection implements FzsConnection {
         // recive fzs from source
         while (true) {
             try {
-                byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\qmi.fzs");
+                byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\date.fzs");
 
                 logger.info("FzsConnection put a bytes");
                 outQueue.put(bytes);

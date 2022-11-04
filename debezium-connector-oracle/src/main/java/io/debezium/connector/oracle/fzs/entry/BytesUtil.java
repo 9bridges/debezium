@@ -316,18 +316,16 @@ public final class BytesUtil {
     }
 
     public static int getByteOrShort(ByteBuf byteBuf) {
-        int val;
-        val = byteBuf.readByte();
-        if ((val & 0xff) == 0xff) {
+        int val = byteBuf.readByte() & 0xff;
+        if (val == 0xff) {
             val = byteBuf.readShort();
         }
         return val;
     }
 
     public static int getByteOrInt(ByteBuf byteBuf) {
-        int val;
-        val = byteBuf.readByte();
-        if ((val & 0xff) == 0xff) {
+        int val = byteBuf.readByte() & 0xff;
+        if (val == 0xff) {
             val = byteBuf.readInt();
         }
         return val;

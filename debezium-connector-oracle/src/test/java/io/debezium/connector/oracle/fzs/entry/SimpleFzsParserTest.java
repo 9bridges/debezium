@@ -33,10 +33,17 @@ public class SimpleFzsParserTest {
         BlockingQueue<FzsEntry> recordQueue = new LinkedBlockingQueue<>(20000);
         File dataDir = new File("src\\test\\resources\\fzs");
         for (File file : Objects.requireNonNull(dataDir.listFiles())) {
+            if (file.getPath().indexOf("null") == 0) {
+                continue;
+            }
+            /*
+             * byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\qmi.fzs");
+             */
             byte[] bytes = file2byte(file.getPath());
             SimpleFzsParser simpleFzsParser = new SimpleFzsParser();
             assert bytes != null;
             simpleFzsParser.parser(bytes, recordQueue);
+            System.out.println("filename: " + file.getPath());
             while (!recordQueue.isEmpty()) {
                 System.out.println(recordQueue.poll().toString());
             }

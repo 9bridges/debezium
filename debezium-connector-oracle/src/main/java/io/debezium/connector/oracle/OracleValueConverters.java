@@ -635,12 +635,14 @@ public class OracleValueConverters extends JdbcValueConverters {
             dateTime = LocalDateTime.from(TIMESTAMP_FORMATTER.parse(toDateMatcher.group(1)));
             return dateTime.atZone(GMT_ZONE_ID).toInstant();
         }
-        if (data.length() <= 10) {
-            data += " 00:00:00";
+
+        if (data.length() != 0) {
+            dateTime = LocalDateTime.from(TIMESTAMP_FORMATTER.parse(data));
+            return dateTime.atZone(GMT_ZONE_ID).toInstant();
         }
-        dateTime = LocalDateTime.from(TIMESTAMP_FORMATTER.parse(data));
+
         // Unable to resolve
-        return dateTime.atZone(GMT_ZONE_ID).toInstant();
+        return null;
     }
 
     @Override

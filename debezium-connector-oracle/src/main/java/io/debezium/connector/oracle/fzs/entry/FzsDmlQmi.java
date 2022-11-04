@@ -53,7 +53,10 @@ public class FzsDmlQmi extends FzsDmlEntryImpl {
             int[] columnTypes = new int[columnCount];
             for (int col = 0; col < columnCount; col++) {
                 int colLen = getByteOrShort(byteBuf);
-                rowDatas[row][col] = new String(readBytes(byteBuf, colLen));
+                byte[] bytes = null;
+                if (colLen > 0) {
+                    bytes = readBytes(byteBuf, colLen);
+                }
                 if (row == 0) {
                     colmnNames[col] = getString(byteBuf);
                     columnTypes[col] = getByteOrShort(byteBuf);
@@ -61,6 +64,7 @@ public class FzsDmlQmi extends FzsDmlEntryImpl {
                     byteBuf.readerIndex(byteBuf.readerIndex() + 5); // col_unique, col_dsform, col_csid, col_null
 
                 }
+                setValueByColumnType(rowDatas[row], columnTypes[col], colLen, bytes, col);
             }
             if (row == 0) {
                 setNewColumnNames(colmnNames);

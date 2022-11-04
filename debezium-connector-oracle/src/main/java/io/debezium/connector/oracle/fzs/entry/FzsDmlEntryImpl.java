@@ -149,6 +149,24 @@ public abstract class FzsDmlEntryImpl implements FzsDmlEntry {
         return oldColumntypes;
     }
 
+    boolean isBytesType(int colType) {
+        ColumnType columnType = ColumnType.from(colType);
+        // Column only define byte val, so if return null, means not bytes type
+        return columnType != null;
+    }
+
+    void setValueByColumnType(Object[] value, int colType, int colLen, byte[] bytes, int index) {
+        if (colLen <= 0) {
+            return;
+        }
+        if (isBytesType(colType)) {
+            value[index] = new byte[colLen];
+            System.arraycopy(bytes, 0, value[index], 0, colLen);
+            return;
+        }
+        value[index] = new String(bytes);
+    }
+
     @Override
     public String toString() {
         return "FzsDmlEntryImpl{" +

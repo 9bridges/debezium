@@ -25,10 +25,14 @@ public class FzsDmlUrp extends FzsDmlEntryImpl {
         for (int index = 0; index < columnCount; index++) {
             getByteOrShort(byteBuf); // columnId
             int colLen = getByteOrShort(byteBuf);
-            values[index] = new String(readBytes(byteBuf, colLen));
+            byte[] bytes = null;
+            if (colLen > 0) {
+                bytes = readBytes(byteBuf, colLen);
+            }
             columName[index] = getString(byteBuf);
             columnType[index] = getByteOrShort(byteBuf);
             getByteOrInt(byteBuf); // col_length_max
+            setValueByColumnType(values, columnType[index], colLen, bytes, index);
             byteBuf.readerIndex(byteBuf.readerIndex() + skipSize); // col_csform + col_csid + col_null
         }
 
