@@ -15,8 +15,9 @@ public class FzsDmlQmd extends FzsDmlQmi {
         return OpCode.MULIT_DELETE;
     }
 
-    public List<FzsDmlDrp> toDrpList() {
-        List<FzsDmlDrp> fzsDmlDrps = new ArrayList<>();
+    @Override
+    public List<FzsEntry> toList() {
+        List<FzsEntry> fzsEntries = new ArrayList<>();
         Object[][] datas = getRowDatas();
         for (int i = 0; i < getRowCount(); i++) {
             FzsDmlDrp fzsDmlDrp = new FzsDmlDrp();
@@ -29,8 +30,8 @@ public class FzsDmlQmd extends FzsDmlQmi {
             fzsDmlDrp.setScn(getScn());
             fzsDmlDrp.setTransactionId(getTransactionId());
             fzsDmlDrp.setSourceTime(getSourceTime());
-            fzsDmlDrps.add(fzsDmlDrp);
+            fzsEntries.add(fzsDmlDrp);
         }
-        return fzsDmlDrps;
+        return fzsEntries;
     }
 }

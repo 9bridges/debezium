@@ -19,7 +19,7 @@ public class FzsProducer implements Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(FzsProducer.class);
     private final FzsConnection fzsConnection;
-    private Thread fzsConnectionTask;
+    private final Thread fzsConnectionTask;
     private final FzsParser fzsParser;
     private final BlockingQueue<FzsEntry> outQueue;
     private final AtomicBoolean started = new AtomicBoolean(false);
