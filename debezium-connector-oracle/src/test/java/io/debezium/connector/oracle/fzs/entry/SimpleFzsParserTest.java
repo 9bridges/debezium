@@ -7,6 +7,7 @@ package io.debezium.connector.oracle.fzs.entry;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -15,7 +16,7 @@ import org.junit.Test;
 public class SimpleFzsParserTest {
     public static byte[] file2byte(String path) {
         try {
-            FileInputStream in = new FileInputStream(new File(path));
+            FileInputStream in = new FileInputStream(path);
             byte[] data = new byte[in.available()];
             in.read(data);
             in.close();
@@ -30,11 +31,15 @@ public class SimpleFzsParserTest {
     @Test
     public void SimpleFzsParserTest() {
         BlockingQueue<FzsEntry> recordQueue = new LinkedBlockingQueue<>(20000);
-        byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\qmi.fzs");
-        SimpleFzsParser simpleFzsParser = new SimpleFzsParser();
-        simpleFzsParser.parser(bytes, recordQueue);
-        while (!recordQueue.isEmpty()) {
-            System.out.println(recordQueue.poll().toString());
+        File dataDir = new File("src\\test\\resources\\fzs");
+        for (File file : Objects.requireNonNull(dataDir.listFiles())) {
+            byte[] bytes = file2byte(file.getPath());
+            SimpleFzsParser simpleFzsParser = new SimpleFzsParser();
+            assert bytes != null;
+            simpleFzsParser.parser(bytes, recordQueue);
+            while (!recordQueue.isEmpty()) {
+                System.out.println(recordQueue.poll().toString());
+            }
         }
     }
 }

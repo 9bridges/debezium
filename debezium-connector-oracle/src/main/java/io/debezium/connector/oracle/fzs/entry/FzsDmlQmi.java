@@ -77,8 +77,8 @@ public class FzsDmlQmi extends FzsDmlEntryImpl {
         return rowDatas;
     }
 
-    public List<FzsDmlIrp> toIrpList() {
-        List<FzsDmlIrp> fzsDmlIrps = new ArrayList<>();
+    public List<FzsEntry> toList() {
+        List<FzsEntry> fzsEntries = new ArrayList<>();
         for (int i = 0; i < rowCount; i++) {
             FzsDmlIrp fzsDmlIrp = new FzsDmlIrp();
             fzsDmlIrp.setDatabaseName(getDatabaseName());
@@ -90,8 +90,8 @@ public class FzsDmlQmi extends FzsDmlEntryImpl {
             fzsDmlIrp.setScn(getScn());
             fzsDmlIrp.setTransactionId(getTransactionId());
             fzsDmlIrp.setSourceTime(getSourceTime());
-            fzsDmlIrps.add(fzsDmlIrp);
+            fzsEntries.add(fzsDmlIrp);
         }
-        return fzsDmlIrps;
+        return fzsEntries;
     }
 }
