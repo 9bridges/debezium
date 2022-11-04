@@ -25,11 +25,15 @@ public class FzsDmlIrp extends FzsDmlEntryImpl {
         int[] columnTypes = new int[columnCount];
         Object[] values = new Object[columnCount];
         for (int index = 0; index < columnCount; index++) {
-            int colLen = getByteOrShort(byteBuf);
-            values[index] = new String(readBytes(byteBuf, colLen));
+            int colLen = getByteOrInt(byteBuf);
+            byte[] bytes = null;
+            if (colLen > 0) {
+                bytes = readBytes(byteBuf, colLen);
+            }
             columNames[index] = getString(byteBuf);
             columnTypes[index] = getByteOrShort(byteBuf);
             getByteOrInt(byteBuf); // col_length_max
+            setValueByColumnType(values, columnTypes[index], colLen, bytes, index);
             byteBuf.readerIndex(byteBuf.readerIndex() + 5); // col_unique + col_csform + col_csid + col_null
         }
         setValues(values, columNames, columnTypes);
