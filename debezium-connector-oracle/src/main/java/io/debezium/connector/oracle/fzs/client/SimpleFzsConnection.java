@@ -30,7 +30,8 @@ public class SimpleFzsConnection implements FzsConnection {
             in.read(data);
             in.close();
             return data;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -49,7 +50,8 @@ public class SimpleFzsConnection implements FzsConnection {
         byte[] bytes = null;
         try {
             bytes = outQueue.take();
-        } catch (InterruptedException ignored) {
+        }
+        catch (InterruptedException ignored) {
             // do nothing
         }
         return bytes;
@@ -60,12 +62,13 @@ public class SimpleFzsConnection implements FzsConnection {
         // recive fzs from source
         while (true) {
             try {
-                byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\4.fzs");
+                byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\qmi.fzs");
 
                 logger.info("FzsConnection put a bytes");
                 outQueue.put(bytes);
                 Thread.sleep(3000);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }

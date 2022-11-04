@@ -281,7 +281,8 @@ public final class BytesUtil {
         byte[] bytes = new byte[size];
         try {
             stream.read(bytes, 0, size);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
         return bytes;
@@ -306,7 +307,10 @@ public final class BytesUtil {
 
     public static String getString(ByteBuf data, String encoding) throws UnsupportedEncodingException {
         int length = data.readByte();
-        String rs = new String(data.array(), data.readerIndex(), length - 1, encoding);
+        String rs = null;
+        if (length > 0) {
+            rs = new String(data.array(), data.readerIndex(), length - 1, encoding);
+        }
         data.readerIndex(data.readerIndex() + length);
         return rs;
     }

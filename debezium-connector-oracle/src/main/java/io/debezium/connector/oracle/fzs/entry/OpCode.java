@@ -9,6 +9,8 @@ public enum OpCode {
     INSERT(0xb2),
     DELETE(0xb3),
     UPDATE(0xb5),
+    MULIT_INSERT(0xbb),
+    MULIT_DELETE(0xbc),
     DDL(0xd1),
     START(0x52),
     COMMIT(0x54),

@@ -30,7 +30,7 @@ public class SimpleFzsParserTest {
     @Test
     public void SimpleFzsParserTest() {
         BlockingQueue<FzsEntry> recordQueue = new LinkedBlockingQueue<>(20000);
-        byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\4.fzs");
+        byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\qmi.fzs");
         SimpleFzsParser simpleFzsParser = new SimpleFzsParser();
         simpleFzsParser.parser(bytes, recordQueue);
         while (!recordQueue.isEmpty()) {
