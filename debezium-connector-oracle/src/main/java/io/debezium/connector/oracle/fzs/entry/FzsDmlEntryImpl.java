@@ -149,17 +149,26 @@ public abstract class FzsDmlEntryImpl implements FzsDmlEntry {
         return oldColumntypes;
     }
 
-    boolean isBytesType(int colType) {
+    boolean isBinaryLob(int colType) {
         ColumnType columnType = ColumnType.from(colType);
         // Column only define byte val, so if return null, means not bytes type
-        return columnType != null;
+        return columnType != null && columnType != ColumnType.FZS_CLOB;
+    }
+
+    boolean isStringLob(int colType) {
+        ColumnType columnType = ColumnType.from(colType);
+        return columnType == ColumnType.FZS_CLOB;
+    }
+
+    boolean isLob(int colType) {
+        return isStringLob(colType) || isBinaryLob(colType);
     }
 
     void setValueByColumnType(Object[] value, int colType, int colLen, byte[] bytes, int index) {
         if (colLen <= 0) {
             return;
         }
-        if (isBytesType(colType)) {
+        if (isBinaryLob(colType)) {
             value[index] = new byte[colLen];
             System.arraycopy(bytes, 0, value[index], 0, colLen);
             return;

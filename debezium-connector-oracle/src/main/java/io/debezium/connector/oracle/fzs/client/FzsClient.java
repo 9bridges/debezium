@@ -20,7 +20,7 @@ public class FzsClient {
     private Thread processThread;
     private Thread producerThread;
     private FzsRecordListener fzsRecordListener;
-    private FzsProducer fzsProducer;
+    private final FzsProducer fzsProducer;
     private final BlockingQueue<FzsEntry> recordQueue;
     private final AtomicBoolean started = new AtomicBoolean(false);
 
