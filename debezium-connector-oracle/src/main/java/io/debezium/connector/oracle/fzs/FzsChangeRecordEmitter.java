@@ -44,8 +44,7 @@ public class FzsChangeRecordEmitter extends BaseChangeRecordEmitter<Object> {
 
     @Override
     protected Object[] getNewColumnValues() {
-        Object[] tmp = fzsDmlEntry.getNewValues();
-        return tmp;
+        return fzsDmlEntry.getNewValues();
     }
 
 }

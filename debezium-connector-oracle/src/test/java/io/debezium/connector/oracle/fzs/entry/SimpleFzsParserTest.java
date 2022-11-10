@@ -7,10 +7,16 @@ package io.debezium.connector.oracle.fzs.entry;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.watch.SimpleWatcher;
+import cn.hutool.core.io.watch.WatchMonitor;
+import cn.hutool.core.lang.Console;
 import org.junit.Test;
 
 public class SimpleFzsParserTest {
@@ -31,22 +37,35 @@ public class SimpleFzsParserTest {
     @Test
     public void SimpleFzsParserTest() {
         BlockingQueue<FzsEntry> recordQueue = new LinkedBlockingQueue<>(20000);
-        File dataDir = new File("src\\test\\resources\\fzs");
-        for (File file : Objects.requireNonNull(dataDir.listFiles())) {
-            if (file.getPath().indexOf("null") == 0) {
-                continue;
+
+        String filePath = "D:\\fzs\\dmp_test\\run\\fzs_src\\1\\0\\";
+        File file = FileUtil.file(filePath);
+        SimpleFzsParser simpleFzsParser = new SimpleFzsParser();
+        WatchMonitor.createAll(file, new SimpleWatcher() {
+            @Override
+            public void onCreate(WatchEvent<?> event, Path currentPath) {
+                Object obj = event.context();
+                Console.log("create {}-> {}", currentPath, obj);
             }
-            /*
-             * byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\qmi.fzs");
-             */
-            byte[] bytes = file2byte(file.getPath());
-            SimpleFzsParser simpleFzsParser = new SimpleFzsParser();
-            assert bytes != null;
-            simpleFzsParser.parser(bytes, recordQueue);
-            System.out.println("filename: " + file.getPath());
-            while (!recordQueue.isEmpty()) {
-                System.out.println(recordQueue.poll().toString());
+
+            @Override
+            public void onModify(WatchEvent<?> event, Path currentPath) {
+                Object obj = event.context();
+                Console.log("modify {}-> {}", currentPath, obj);
+                byte[] bytes = file2byte(filePath + obj);
+                simpleFzsParser.parser(bytes, recordQueue);
+                while (!recordQueue.isEmpty()) {
+                    System.out.println(recordQueue.poll().toString());
+                }
             }
-        }
+
+            @Override
+            public void onDelete(WatchEvent<?> event, Path currentPath) {
+                Object obj = event.context();
+                Console.log("delete {}-> {}", currentPath, obj);
+            }
+        }).start();
+        System.out.println("over");
+        while (true) {}
     }
 }

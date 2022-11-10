@@ -6,7 +6,8 @@
 package io.debezium.connector.oracle.fzs.entry;
 
 public enum ColumnType {
-    // only define byte value in fzs
+    // those not all types, only define byte or lob value in fzs
+    FZS_CLOB(112),
     FZS_BLOB(113),
     FZS_RAW(23),
     FZS_LONGRAW(24),
