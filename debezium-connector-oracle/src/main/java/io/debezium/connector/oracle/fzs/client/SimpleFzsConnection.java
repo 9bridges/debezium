@@ -7,11 +7,19 @@ package io.debezium.connector.oracle.fzs.client;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Path;
+import java.nio.file.WatchEvent;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.debezium.connector.oracle.fzs.entry.SimpleFzsParser;
+
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.watch.SimpleWatcher;
+import cn.hutool.core.io.watch.WatchMonitor;
 
 public class SimpleFzsConnection implements FzsConnection {
     private Logger logger = LoggerFactory.getLogger(SimpleFzsConnection.class);
@@ -60,17 +68,31 @@ public class SimpleFzsConnection implements FzsConnection {
     @Override
     public void run() {
         // recive fzs from source
-        while (true) {
-            try {
-                byte[] bytes = file2byte("D:\\code\\debezium\\debezium-connector-oracle\\src\\test\\resources\\fzs\\alltypeop.fzs");
+        String filePath = "D:\\fzs\\dmp_test\\run\\fzs_src\\1\\0\\";
+        File file = FileUtil.file(filePath);
+        SimpleFzsParser simpleFzsParser = new SimpleFzsParser();
+        WatchMonitor.createAll(file, new SimpleWatcher() {
+            @Override
+            public void onCreate(WatchEvent<?> event, Path currentPath) {
+            }
 
-                logger.info("FzsConnection put a bytes");
-                outQueue.put(bytes);
-                Thread.sleep(3000);
+            @Override
+            public void onModify(WatchEvent<?> event, Path currentPath) {
+                Object obj = event.context();
+                logger.info("modify {}-> {}", currentPath, obj);
+                byte[] bytes = file2byte(filePath + obj);
+                try {
+                    assert bytes != null;
+                    outQueue.put(bytes);
+                }
+                catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
-            catch (InterruptedException e) {
-                throw new RuntimeException(e);
+
+            @Override
+            public void onDelete(WatchEvent<?> event, Path currentPath) {
             }
-        }
+        }).start();
     }
 }

@@ -9,15 +9,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
-import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.junit.Test;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.watch.SimpleWatcher;
 import cn.hutool.core.io.watch.WatchMonitor;
 import cn.hutool.core.lang.Console;
-import org.junit.Test;
 
 public class SimpleFzsParserTest {
     public static byte[] file2byte(String path) {
@@ -66,6 +66,7 @@ public class SimpleFzsParserTest {
             }
         }).start();
         System.out.println("over");
-        while (true) {}
+        while (true) {
+        }
     }
 }
