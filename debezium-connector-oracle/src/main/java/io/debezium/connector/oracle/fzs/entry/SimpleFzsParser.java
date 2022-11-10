@@ -114,9 +114,11 @@ class ParseTask implements Callable<List<FzsEntry>> {
             case COMMIT:
                 fzsEntry = new FzsTransCommit();
                 break;
-            case DDL:
-                fzsEntry = new FzsDdlEntryImpl();
-                break;
+            case DDL: // todo deal ddl
+                /*
+                 * fzsEntry = new FzsDdlEntryImpl();
+                 * break;
+                 */
             case UNSUPPORTED:
                 logger.warn("unsupport opcode: {}", data[ENTRY_TYPE_OFFSET] & 0xff);
         }
