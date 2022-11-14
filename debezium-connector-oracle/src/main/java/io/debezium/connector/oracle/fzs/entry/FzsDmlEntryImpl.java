@@ -128,7 +128,7 @@ public abstract class FzsDmlEntryImpl implements FzsDmlEntry {
 
     @Override
     public String getDatabaseName() {
-        return "LHR11G";
+        return dataBaseName;
     }
 
     public void setNewColumnTypes(int[] newColumnTypes) {

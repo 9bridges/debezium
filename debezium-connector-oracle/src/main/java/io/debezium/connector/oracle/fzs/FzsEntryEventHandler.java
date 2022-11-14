@@ -156,10 +156,10 @@ class FzsEntryEventHandler {
 
     private TableId getTableId(FzsEntry fzsEntry) {
         if (!this.tablenameCaseInsensitive) {
-            return new TableId(fzsEntry.getDatabaseName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName());
+            return new TableId(connectorConfig.getCatalogName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName());
         }
         else {
-            return new TableId(fzsEntry.getDatabaseName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName().toLowerCase());
+            return new TableId(connectorConfig.getCatalogName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName().toLowerCase());
         }
     }
 
