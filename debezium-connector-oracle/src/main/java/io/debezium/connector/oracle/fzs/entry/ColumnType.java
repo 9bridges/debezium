@@ -6,7 +6,7 @@
 package io.debezium.connector.oracle.fzs.entry;
 
 public enum ColumnType {
-    // those not all types, only define byte or lob value in fzs
+    // those not all types, only define byte, lob, zone time value in fzs
     FZS_CLOB(112),
     FZS_BLOB(113),
     FZS_RAW(23),
@@ -17,6 +17,8 @@ public enum ColumnType {
     FZS_BYTE3(111),
     FZS_BFILE(114),
     FZS_BYTE5(115),
+    FZS_TIMESTAMP_WITH_TIMEZONE(181),
+    FZS_TIMESTAMP_WITH_LOCAL_TIMEZONE(231),
     UNSUPPORTED(255);
 
     private static final ColumnType[] types = new ColumnType[256];

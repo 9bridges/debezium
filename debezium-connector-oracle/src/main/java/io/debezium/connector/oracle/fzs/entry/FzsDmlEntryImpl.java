@@ -152,7 +152,10 @@ public abstract class FzsDmlEntryImpl implements FzsDmlEntry {
     boolean isBinaryLob(int colType) {
         ColumnType columnType = ColumnType.from(colType);
         // Column only define byte val, so if return null, means not bytes type
-        return columnType != null && columnType != ColumnType.FZS_CLOB;
+        return columnType != null &&
+                columnType != ColumnType.FZS_CLOB &&
+                columnType != ColumnType.FZS_TIMESTAMP_WITH_LOCAL_TIMEZONE &&
+                columnType != ColumnType.FZS_TIMESTAMP_WITH_TIMEZONE;
     }
 
     boolean isStringLob(int colType) {
@@ -164,6 +167,12 @@ public abstract class FzsDmlEntryImpl implements FzsDmlEntry {
         return isStringLob(colType) || isBinaryLob(colType);
     }
 
+    boolean isZoneTime(int colType) {
+        ColumnType columnType = ColumnType.from(colType);
+        return columnType == ColumnType.FZS_TIMESTAMP_WITH_LOCAL_TIMEZONE
+                || columnType == ColumnType.FZS_TIMESTAMP_WITH_TIMEZONE;
+    }
+
     void setValueByColumnType(Object[] value, int colType, int colLen, byte[] bytes, int index) {
         if (colLen <= 0) {
             return;
@@ -171,6 +180,12 @@ public abstract class FzsDmlEntryImpl implements FzsDmlEntry {
         if (isBinaryLob(colType)) {
             value[index] = new byte[colLen];
             System.arraycopy(bytes, 0, value[index], 0, colLen);
+            return;
+        }
+        if (isZoneTime(colType)) {
+            value[index] = "TO_TIMESTAMP_TZ('" +
+                    new String(bytes) +
+                    "')";
             return;
         }
         value[index] = new String(bytes);
