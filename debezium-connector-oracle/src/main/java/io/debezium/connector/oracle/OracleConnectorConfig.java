@@ -60,7 +60,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
     protected final static Duration SLEEP_TIME_INCREMENT = Duration.ofMillis(200);
 
     protected final static Duration ARCHIVE_LOG_ONLY_POLL_TIME = Duration.ofMillis(10_000);
-
+    protected final static int DEFAULT_FZS_SERVER_PORT = 8303;
     public static final Field PORT = RelationalDatabaseConnectorConfig.PORT
             .withDefault(DEFAULT_PORT);
 
@@ -315,7 +315,13 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
             .withImportance(Importance.LOW)
             .withDescription("Sets the specific archive log destination as the source for reading archive logs." +
                     "When not set, the connector will automatically select the first LOCAL and VALID destination.");
-
+    public static final Field FZS_SERVER_PORT = Field.create("fzs.server.port")
+            .withDisplayName("fzs server port")
+            .withType(Type.LONG)
+            .withWidth(Width.SHORT)
+            .withImportance(Importance.LOW)
+            .withDefault(DEFAULT_FZS_SERVER_PORT)
+            .withDescription("The port to bind to recive fzs entry");
     private static final ConfigDefinition CONFIG_DEFINITION = HistorizedRelationalDatabaseConnectorConfig.CONFIG_DEFINITION.edit()
             .name("Oracle")
             .excluding(
@@ -358,7 +364,9 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
                     LOG_MINING_ARCHIVE_LOG_ONLY_MODE,
                     LOB_ENABLED,
                     LOG_MINING_ARCHIVE_DESTINATION_NAME,
-                    LOG_MINING_ARCHIVE_LOG_ONLY_SCN_POLL_INTERVAL_MS)
+                    LOG_MINING_ARCHIVE_LOG_ONLY_SCN_POLL_INTERVAL_MS,
+                    UNAVAILABLE_VALUE_PLACEHOLDER,
+                    FZS_SERVER_PORT)
             .create();
 
     /**
@@ -407,6 +415,8 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
     private final boolean lobEnabled;
     private final String logMiningArchiveDestinationName;
 
+    private final int fzsServerPort;
+
     public OracleConnectorConfig(Configuration config) {
         super(OracleConnector.class, config, config.getString(SERVER_NAME), new SystemTablesPredicate(config), x -> x.schema() + "." + x.table(), true,
                 ColumnFilterMode.SCHEMA);
@@ -446,6 +456,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
         this.archiveLogOnlyMode = config.getBoolean(LOG_MINING_ARCHIVE_LOG_ONLY_MODE);
         this.logMiningArchiveDestinationName = config.getString(LOG_MINING_ARCHIVE_DESTINATION_NAME);
         this.archiveLogOnlyScnPollTime = Duration.ofMillis(config.getInteger(LOG_MINING_ARCHIVE_LOG_ONLY_SCN_POLL_INTERVAL_MS));
+        this.fzsServerPort = config.getInteger(FZS_SERVER_PORT);
     }
 
     private static String toUpperCase(String property) {
@@ -488,6 +499,10 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
 
     public String getOracleVersion() {
         return oracleVersion;
+    }
+
+    public int getFzsServerPort() {
+        return fzsServerPort;
     }
 
     @Override

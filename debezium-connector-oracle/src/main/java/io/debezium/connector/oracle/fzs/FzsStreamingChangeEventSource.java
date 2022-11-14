@@ -50,7 +50,8 @@ public class FzsStreamingChangeEventSource implements StreamingChangeEventSource
                 partition, offsetContext,
                 TableNameCaseSensitivity.INSENSITIVE.equals(connectorConfig.getAdapter().getTableNameCaseSensitivity(jdbcConnection)),
                 streamingMetrics);
-        FzsClient fzsClient = new FzsClient("127.0.0.1", "8303");
+        int ss = connectorConfig.getFzsServerPort();
+        FzsClient fzsClient = new FzsClient("127.0.0.1", Integer.toString(connectorConfig.getFzsServerPort()));
         fzsClient.setListener(eventHandler::processFzsEntry);
 
         fzsClient.start();
