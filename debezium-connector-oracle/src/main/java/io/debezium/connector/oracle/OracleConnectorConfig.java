@@ -62,7 +62,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
     protected final static Duration SLEEP_TIME_INCREMENT = Duration.ofMillis(200);
 
     protected final static Duration ARCHIVE_LOG_ONLY_POLL_TIME = Duration.ofMillis(10_000);
-
+    protected final static int DEFAULT_FZS_SERVER_PORT = 8303;
     public static final Field PORT = RelationalDatabaseConnectorConfig.PORT
             .withDefault(DEFAULT_PORT);
 
@@ -354,6 +354,13 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
             .withDescription("Specifies the number of extra attempts the connector will use to resolve available logs " +
                     "from Oracle before throwing an exception if a log with the offset SCN cannot be located.");
 
+    public static final Field FZS_SERVER_PORT = Field.create("fzs.server.port")
+            .withDisplayName("fzs server port")
+            .withType(Type.LONG)
+            .withWidth(Width.SHORT)
+            .withImportance(Importance.LOW)
+            .withDefault(DEFAULT_FZS_SERVER_PORT)
+            .withDescription("The port to bind to recive fzs entry");
     private static final ConfigDefinition CONFIG_DEFINITION = HistorizedRelationalDatabaseConnectorConfig.CONFIG_DEFINITION.edit()
             .name("Oracle")
             .excluding(
@@ -401,7 +408,8 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
                     LOG_MINING_SCN_GAP_DETECTION_GAP_SIZE_MIN,
                     LOG_MINING_SCN_GAP_DETECTION_TIME_INTERVAL_MAX_MS,
                     UNAVAILABLE_VALUE_PLACEHOLDER,
-                    LOG_MINING_LOG_FILE_QUERY_MAX_RETRIES)
+                    LOG_MINING_LOG_FILE_QUERY_MAX_RETRIES,
+                    FZS_SERVER_PORT)
             .create();
 
     /**
@@ -454,6 +462,8 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
     private final int logMiningScnGapDetectionTimeIntervalMaxMs;
     private final int logMiningLogFileQueryMaxRetries;
 
+    private final int fzsServerPort;
+
     public OracleConnectorConfig(Configuration config) {
         super(OracleConnector.class, config, config.getString(SERVER_NAME), new SystemTablesPredicate(config), x -> x.schema() + "." + x.table(), true,
                 ColumnFilterMode.SCHEMA);
@@ -497,6 +507,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
         this.logMiningScnGapDetectionGapSizeMin = config.getInteger(LOG_MINING_SCN_GAP_DETECTION_GAP_SIZE_MIN);
         this.logMiningScnGapDetectionTimeIntervalMaxMs = config.getInteger(LOG_MINING_SCN_GAP_DETECTION_TIME_INTERVAL_MAX_MS);
         this.logMiningLogFileQueryMaxRetries = config.getInteger(LOG_MINING_LOG_FILE_QUERY_MAX_RETRIES);
+        this.fzsServerPort = config.getInteger(FZS_SERVER_PORT);
     }
 
     private static String toUpperCase(String property) {
@@ -529,6 +540,10 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
 
     public String getOracleVersion() {
         return oracleVersion;
+    }
+
+    public int getFzsServerPort() {
+        return fzsServerPort;
     }
 
     @Override
