@@ -152,10 +152,23 @@ public abstract class FzsDmlEntryImpl implements FzsDmlEntry {
     boolean isBinaryLob(int colType) {
         ColumnType columnType = ColumnType.from(colType);
         // Column only define byte val, so if return null, means not bytes type
-        return columnType != null &&
-                columnType != ColumnType.FZS_CLOB &&
-                columnType != ColumnType.FZS_TIMESTAMP_WITH_LOCAL_TIMEZONE &&
-                columnType != ColumnType.FZS_TIMESTAMP_WITH_TIMEZONE;
+        if (columnType == null) {
+            return false;
+        }
+        switch (columnType) {
+            case FZS_BLOB:
+            case FZS_RAW:
+            case FZS_LONGRAW:
+            case FZS_RAW2:
+            case FZS_BYTE1:
+            case FZS_BYTE2:
+            case FZS_BYTE3:
+            case FZS_BFILE:
+            case FZS_BYTE5:
+                return true;
+            default:
+                return false;
+        }
     }
 
     boolean isStringLob(int colType) {
@@ -184,6 +197,19 @@ public abstract class FzsDmlEntryImpl implements FzsDmlEntry {
         }
         if (isZoneTime(colType)) {
             value[index] = "TO_TIMESTAMP_TZ('" +
+                    new String(bytes) +
+                    "')";
+            return;
+        }
+        ColumnType columnType = ColumnType.from(colType);
+        if (columnType == ColumnType.FZS_DAY_TO_SECOND) {
+            value[index] = "TO_DSINTERVAL('" +
+                    new String(bytes) +
+                    "')";
+            return;
+        }
+        else if (columnType == ColumnType.FZS_YEAR_TO_MONTH) {
+            value[index] = "TO_YMINTERVAL('" +
                     new String(bytes) +
                     "')";
             return;
