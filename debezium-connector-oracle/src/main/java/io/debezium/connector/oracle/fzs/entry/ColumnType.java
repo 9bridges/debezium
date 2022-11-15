@@ -19,6 +19,8 @@ public enum ColumnType {
     FZS_BYTE5(115),
     FZS_TIMESTAMP_WITH_TIMEZONE(181),
     FZS_TIMESTAMP_WITH_LOCAL_TIMEZONE(231),
+    FZS_YEAR_TO_MONTH(182),
+    FZS_DAY_TO_SECOND(183),
     UNSUPPORTED(255);
 
     private static final ColumnType[] types = new ColumnType[256];
