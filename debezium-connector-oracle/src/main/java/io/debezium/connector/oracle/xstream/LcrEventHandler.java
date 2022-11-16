@@ -7,7 +7,6 @@ package io.debezium.connector.oracle.xstream;
 
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,13 +21,16 @@ import io.debezium.connector.oracle.OracleDatabaseSchema;
 import io.debezium.connector.oracle.OracleOffsetContext;
 import io.debezium.connector.oracle.OracleSchemaChangeEventEmitter;
 import io.debezium.connector.oracle.OracleStreamingChangeEventSourceMetrics;
+import io.debezium.connector.oracle.OracleValueConverters;
 import io.debezium.connector.oracle.xstream.XstreamStreamingChangeEventSource.PositionAndScn;
 import io.debezium.pipeline.ErrorHandler;
 import io.debezium.pipeline.EventDispatcher;
+import io.debezium.relational.Column;
 import io.debezium.relational.Table;
 import io.debezium.relational.TableId;
 import io.debezium.util.Clock;
 
+import oracle.jdbc.OracleTypes;
 import oracle.streams.ChunkColumnValue;
 import oracle.streams.DDLLCR;
 import oracle.streams.LCR;
@@ -136,7 +138,7 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
         }
         else {
             // Since the row has no chunk data, it can be dispatched immediately.
-            dispatchDataChangeEvent(row, Collections.emptyMap());
+            dispatchDataChangeEvent(row, null);
         }
     }
 
@@ -170,10 +172,42 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
                 table = schema.tableFor(tableId);
             }
         }
+        // Xstream does not provide any before state for LOB columns and so this map will be
+        // populated here by column name with the OracleValueConverters.UNAVAILABLE_VALUE.
+        Map<String, Object> oldChunkValues = new HashMap<>(0);
 
+        if (chunkValues == null) {
+            // Happens when dispatching an LCR without any chunk data.
+            chunkValues = new HashMap<>(0);
+        }
+
+        // LCR events may arrive both with and without chunk data.
+        //
+        // For example a DELETE by a primary key on a table with LOB columns will not supply any
+        // LOB chunk data. In other scenarios such as an UPDATE where a LOB column is modified,
+        // the updated LOB value will be provided but the prior value will not be.
+        //
+        // So in either case, the values need to be serialized here such that any LOB column that
+        // is not explicitly provided in the map is initialized with the unavailable value
+        // marker object so its transformed correctly by the value converters.
+
+        // todo: would be useful in the future to track some type of "has-lob" flag on the table
+        // such a flag would allow us to conditionalize this loop and only apply it to tables
+        // which have LOB columns.
+        for (Column column : table.columns()) {
+            if (isLobColumn(column)) {
+                // again Xstream doesn't supply before state for LOB values; explicitly use unavailable value
+                oldChunkValues.put(column.name(), OracleValueConverters.UNAVAILABLE_VALUE);
+                if (!chunkValues.containsKey(column.name())) {
+                    // Column not supplied, initialize with unavailable value marker
+                    LOGGER.trace("\tColumn '{}' not supplied, initialized with unavailable value", column.name());
+                    chunkValues.put(column.name(), OracleValueConverters.UNAVAILABLE_VALUE);
+                }
+            }
+        }
         dispatcher.dispatchDataChangeEvent(
                 tableId,
-                new XStreamChangeRecordEmitter(offsetContext, lcr, chunkValues, schema.tableFor(tableId), clock));
+                new XStreamChangeRecordEmitter(offsetContext, lcr, oldChunkValues, chunkValues, schema.tableFor(tableId), clock));
     }
 
     private void dispatchSchemaChangeEvent(DDLLCR ddlLcr) throws InterruptedException {
@@ -260,11 +294,7 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
 
     @Override
     public void processChunk(ChunkColumnValue chunk) throws StreamsException {
-        if (connectorConfig.isLobEnabled()) {
-            // Store the chunk in the chunk map
-            // Chunks will be processed once the end of the row is reached
-            columnChunks.computeIfAbsent(chunk.getColumnName(), v -> new ChunkColumnValues()).add(chunk);
-        }
+        columnChunks.computeIfAbsent(chunk.getColumnName(), v -> new ChunkColumnValues()).add(chunk);
 
         if (chunk.isEndOfRow()) {
             try {
@@ -319,5 +349,9 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
     @Override
     public ChunkColumnValue createChunk() throws StreamsException {
         throw new UnsupportedOperationException("Should never be called");
+    }
+
+    private boolean isLobColumn(Column column) {
+        return column.jdbcType() == OracleTypes.CLOB || column.jdbcType() == OracleTypes.NCLOB || column.jdbcType() == OracleTypes.BLOB;
     }
 }

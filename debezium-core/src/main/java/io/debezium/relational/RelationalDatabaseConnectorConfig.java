@@ -64,6 +64,7 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
     public static final String DATABASE_WHITELIST_ALREADY_SPECIFIED_ERROR_MSG = "\"database.whitelist\" is already specified";
 
     public static final long DEFAULT_SNAPSHOT_LOCK_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(10);
+    public static final String DEFAULT_UNAVAILABLE_VALUE_PLACEHOLDER = "__debezium_unavailable_value";
 
     /**
      * The set of predefined DecimalHandlingMode options or aliases.
@@ -525,6 +526,14 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
                     + " If you are excluding one table then turning this on may improve performance."
                     + " If you are excluding a lot of tables the default behavour should work well.")
             .withDefault(false);
+    public static final Field UNAVAILABLE_VALUE_PLACEHOLDER = Field.create("unavailable.value.placeholder")
+            .withDisplayName("Unavailable value placeholder")
+            .withType(Type.STRING)
+            .withWidth(Width.MEDIUM)
+            .withDefault(DEFAULT_UNAVAILABLE_VALUE_PLACEHOLDER)
+            .withImportance(Importance.MEDIUM)
+            .withDescription("Specify the constant that will be provided by Debezium to indicate that " +
+                    "the original value is unavailable and not provided by the database.");
 
     protected static final ConfigDefinition CONFIG_DEFINITION = CommonConnectorConfig.CONFIG_DEFINITION.edit()
             .type(
@@ -677,6 +686,10 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
             return 1;
         }
         return 0;
+    }
+
+    public byte[] getUnavailableValuePlaceholder() {
+        return getConfig().getString(UNAVAILABLE_VALUE_PLACEHOLDER).getBytes();
     }
 
     @Override
