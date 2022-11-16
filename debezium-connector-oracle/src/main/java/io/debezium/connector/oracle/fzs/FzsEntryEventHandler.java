@@ -16,7 +16,6 @@ import io.debezium.connector.oracle.OracleConnection;
 import io.debezium.connector.oracle.OracleConnectorConfig;
 import io.debezium.connector.oracle.OracleDatabaseSchema;
 import io.debezium.connector.oracle.OracleOffsetContext;
-import io.debezium.connector.oracle.OraclePartition;
 import io.debezium.connector.oracle.OracleSchemaChangeEventEmitter;
 import io.debezium.connector.oracle.OracleStreamingChangeEventSourceMetrics;
 import io.debezium.connector.oracle.Scn;
@@ -39,20 +38,18 @@ class FzsEntryEventHandler {
     private final EventDispatcher<TableId> dispatcher;
     private final Clock clock;
     private final OracleDatabaseSchema schema;
-    private final OraclePartition partition;
     private final OracleOffsetContext offsetContext;
     private final boolean tablenameCaseInsensitive;
     private final OracleStreamingChangeEventSourceMetrics streamingMetrics;
 
     public FzsEntryEventHandler(OracleConnectorConfig connectorConfig, ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock,
-                                OracleDatabaseSchema schema, OraclePartition partition, OracleOffsetContext offsetContext,
+                                OracleDatabaseSchema schema, OracleOffsetContext offsetContext,
                                 boolean tablenameCaseInsensitive, OracleStreamingChangeEventSourceMetrics streamingMetrics) {
         this.connectorConfig = connectorConfig;
         this.errorHandler = errorHandler;
         this.dispatcher = dispatcher;
         this.clock = clock;
         this.schema = schema;
-        this.partition = partition;
         this.offsetContext = offsetContext;
         this.tablenameCaseInsensitive = tablenameCaseInsensitive;
         this.streamingMetrics = streamingMetrics;
@@ -98,7 +95,7 @@ class FzsEntryEventHandler {
     private void processDmlEntry(FzsDmlEntry fzsDmlEntry) throws InterruptedException {
         LOGGER.trace("Processing DML event {}", fzsDmlEntry.getEventType());
         if (fzsDmlEntry.getEventType() == OpCode.COMMIT) {
-            dispatcher.dispatchTransactionCommittedEvent(partition, offsetContext);
+            dispatcher.dispatchTransactionCommittedEvent(offsetContext);
             return;
         }
 
@@ -115,7 +112,6 @@ class FzsEntryEventHandler {
                     tableId,
                     new OracleSchemaChangeEventEmitter(
                             connectorConfig,
-                            partition,
                             offsetContext,
                             tableId,
                             tableId.catalog(),
@@ -128,7 +124,7 @@ class FzsEntryEventHandler {
 
         dispatcher.dispatchDataChangeEvent(
                 tableId,
-                new FzsChangeRecordEmitter(partition, offsetContext, fzsDmlEntry,
+                new FzsChangeRecordEmitter(offsetContext, fzsDmlEntry,
                         schema.tableFor(tableId), clock));
     }
 
@@ -143,7 +139,6 @@ class FzsEntryEventHandler {
                 tableId,
                 new OracleSchemaChangeEventEmitter(
                         connectorConfig,
-                        partition,
                         offsetContext,
                         tableId,
                         ddlLcr.getDatabaseName(),

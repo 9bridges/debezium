@@ -9,7 +9,6 @@ import io.debezium.connector.oracle.BaseChangeRecordEmitter;
 import io.debezium.connector.oracle.fzs.entry.FzsDmlEntry;
 import io.debezium.data.Envelope.Operation;
 import io.debezium.pipeline.spi.OffsetContext;
-import io.debezium.pipeline.spi.Partition;
 import io.debezium.relational.Table;
 import io.debezium.util.Clock;
 
@@ -17,9 +16,9 @@ public class FzsChangeRecordEmitter extends BaseChangeRecordEmitter<Object> {
 
     private final FzsDmlEntry fzsDmlEntry;
 
-    public FzsChangeRecordEmitter(Partition partition, OffsetContext offset, FzsDmlEntry lcr,
+    public FzsChangeRecordEmitter(OffsetContext offset, FzsDmlEntry lcr,
                                   Table table, Clock clock) {
-        super(partition, offset, table, clock);
+        super(offset, table, clock);
         this.fzsDmlEntry = lcr;
     }
 

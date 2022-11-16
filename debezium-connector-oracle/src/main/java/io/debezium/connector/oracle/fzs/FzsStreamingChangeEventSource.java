@@ -11,7 +11,6 @@ import io.debezium.connector.oracle.OracleConnection;
 import io.debezium.connector.oracle.OracleConnectorConfig;
 import io.debezium.connector.oracle.OracleDatabaseSchema;
 import io.debezium.connector.oracle.OracleOffsetContext;
-import io.debezium.connector.oracle.OraclePartition;
 import io.debezium.connector.oracle.OracleStreamingChangeEventSourceMetrics;
 import io.debezium.connector.oracle.StreamingAdapter.TableNameCaseSensitivity;
 import io.debezium.connector.oracle.fzs.client.FzsClient;
@@ -21,7 +20,7 @@ import io.debezium.pipeline.source.spi.StreamingChangeEventSource;
 import io.debezium.relational.TableId;
 import io.debezium.util.Clock;
 
-public class FzsStreamingChangeEventSource implements StreamingChangeEventSource<OraclePartition, OracleOffsetContext> {
+public class FzsStreamingChangeEventSource implements StreamingChangeEventSource<OracleOffsetContext> {
     private final OracleConnectorConfig connectorConfig;
     private final OracleConnection jdbcConnection;
     private final EventDispatcher<TableId> dispatcher;
@@ -44,10 +43,10 @@ public class FzsStreamingChangeEventSource implements StreamingChangeEventSource
     }
 
     @Override
-    public void execute(ChangeEventSourceContext context, OraclePartition partition, OracleOffsetContext offsetContext)
+    public void execute(ChangeEventSourceContext context, OracleOffsetContext offsetContext)
             throws InterruptedException {
         FzsEntryEventHandler eventHandler = new FzsEntryEventHandler(connectorConfig, errorHandler, dispatcher, clock, schema,
-                partition, offsetContext,
+                offsetContext,
                 TableNameCaseSensitivity.INSENSITIVE.equals(connectorConfig.getAdapter().getTableNameCaseSensitivity(jdbcConnection)),
                 streamingMetrics);
         int ss = connectorConfig.getFzsServerPort();
