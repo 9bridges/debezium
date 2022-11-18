@@ -394,6 +394,17 @@
     </profiles>
     <repositories>
         <repository>
+            <id>nexus</id>
+            <name>jqnexus</name>
+            <url>http://81.70.133.193:1721/repository/maven-public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>kafka</id>
             <name>kafkamaven</name>
             <url>https://packages.confluent.io/maven/</url>

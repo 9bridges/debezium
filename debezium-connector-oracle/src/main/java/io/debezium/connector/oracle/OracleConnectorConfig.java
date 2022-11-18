@@ -67,7 +67,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
     public static final Field HOSTNAME = RelationalDatabaseConnectorConfig.HOSTNAME
             .withNoValidation()
             .withValidation(OracleConnectorConfig::requiredWhenNoUrl);
-
+    public static final String DEFAULT_UNAVAILABLE_VALUE_PLACEHOLDER = "__debezium_unavailable_value";
     public static final Field PDB_NAME = Field.create(DATABASE_CONFIG_PREFIX + "pdb.name")
             .withDisplayName("PDB name")
             .withType(Type.STRING)
@@ -75,6 +75,15 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
             .withImportance(Importance.HIGH)
             .withDescription("Name of the pluggable database when working with a multi-tenant set-up. "
                     + "The CDB name must be given via " + DATABASE_NAME.name() + " in this case.");
+
+    public static final Field UNAVAILABLE_VALUE_PLACEHOLDER = Field.create("unavailable.value.placeholder")
+            .withDisplayName("Unavailable value placeholder")
+            .withType(Type.STRING)
+            .withWidth(Width.MEDIUM)
+            .withDefault(DEFAULT_UNAVAILABLE_VALUE_PLACEHOLDER)
+            .withImportance(Importance.MEDIUM)
+            .withDescription("Specify the constant that will be provided by Debezium to indicate that " +
+                    "the original value is unavailable and not provided by the database.");
 
     public static final Field XSTREAM_SERVER_NAME = Field.create(DATABASE_CONFIG_PREFIX + "out.server.name")
             .withDisplayName("XStream out server name")
@@ -503,6 +512,10 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
 
     public int getFzsServerPort() {
         return fzsServerPort;
+    }
+
+    public byte[] getUnavailableValuePlaceholder() {
+        return getConfig().getString(UNAVAILABLE_VALUE_PLACEHOLDER).getBytes();
     }
 
     @Override
