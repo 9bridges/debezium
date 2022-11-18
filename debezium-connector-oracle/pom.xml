@@ -1,13 +1,9 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <groupId>io.debezium</groupId>
-        <artifactId>debezium-parent</artifactId>
-        <version>1.6.4.Final</version>
-	<relativePath>../debezium-parent/pom.xml</relativePath>
-    </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>debezium-connector-oracle</artifactId>
+    <groupId>jq.io.debezium</groupId>
+    <artifactId>debezium-connector-oracle-jq</artifactId>
+    <version>1.6.4.Final</version>
     <name>Debezium Connector for Oracle</name>
     <packaging>jar</packaging>
 
@@ -15,84 +11,101 @@
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-core</artifactId>
+            <version>1.6.4.Final</version>
         </dependency>
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-ddl-parser</artifactId>
+            <version>1.6.4.Final</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>connect-api</artifactId>
+            <version>${version.kafka}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <version>${version.org.slf4j}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
+            <version>${version.oracle.driver}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
               <groupId>org.antlr</groupId>
               <artifactId>antlr4-runtime</artifactId>
+            <version>${version.antlr}</version>
         </dependency>
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
             <artifactId>jsqlparser</artifactId>
+            <version>${version.jsqlparser}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-buffer</artifactId>
+            <version>${version.netty}</version>
         </dependency>
         <!-- Testing -->
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-core</artifactId>
+            <version>1.6.4.Final</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-embedded</artifactId>
+            <version>1.6.4.Final</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-embedded</artifactId>
+            <version>1.6.4.Final</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+            <version>${version.org.slf4j}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
+            <version>${version.log4j}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.easytesting</groupId>
             <artifactId>fest-assert</artifactId>
+            <version>${version.fest}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
+            <version>${version.awaitility}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <version>${version.mockito}</version>
             <scope>test</scope>
         </dependency>
 
@@ -100,14 +113,81 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-connect-avro-converter</artifactId>
+            <version>${version.confluent.platform}</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>
 
+    </dependencies>
     <properties>
         <adapter.name>logminer</adapter.name>
-    </properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <version.fest>1.4</version.fest>
+        <version.confluent.platform>6.0.2</version.confluent.platform>
+        <!-- Enforce JDK 11 for building (handled via JBoss parent POM)-->
+        <jdk.min.version>11</jdk.min.version>
+        <version.oracle.driver>19.3.0.0</version.oracle.driver>
+        <version.awaitility>4.0.1</version.awaitility>
+        <!-- Maven Plugins -->
+        <version.junit>4.13.1</version.junit>
+        <version.compiler.plugin>3.8.1</version.compiler.plugin>
+        <version.resources.plugin>3.1.0</version.resources.plugin>
+        <version.filtering.plugin>3.1.1</version.filtering.plugin>
+        <version.dependency.plugin>3.1.1</version.dependency.plugin>
+        <version.enforcer.plugin>3.0.0-M2</version.enforcer.plugin>
+        <version.jsqlparser>2.1</version.jsqlparser>
+        <version.jar.plugin>3.0.2</version.jar.plugin>
+        <version.source.plugin>3.1.0</version.source.plugin>
+        <version.assembly.plugin>3.1.1</version.assembly.plugin>
+        <version.war.plugin>2.5</version.war.plugin>
+        <version.google.formatter.plugin>0.4</version.google.formatter.plugin>
+        <version.docker.maven.plugin>0.31.0</version.docker.maven.plugin>
+        <version.staging.plugin>1.6.8</version.staging.plugin>
+        <version.protoc.maven.plugin>3.8.0</version.protoc.maven.plugin>
+        <version.javadoc.plugin>3.1.1</version.javadoc.plugin>
+        <version.code.formatter>2.15.0</version.code.formatter>
+        <version.surefire.plugin>3.0.0-M3</version.surefire.plugin>
+        <version.checkstyle.plugin>3.1.1</version.checkstyle.plugin>
+        <version.release.plugin>2.5.3</version.release.plugin>
+        <version.impsort>1.6.0</version.impsort>
+        <version.failsafe.plugin>${version.surefire.plugin}</version.failsafe.plugin>
+        <version.checkstyle>8.32</version.checkstyle>
+        <version.revapi.plugin>0.11.5</version.revapi.plugin>
+        <version.jandex>1.0.8</version.jandex>
+        <version.revapi-java.plugin>0.21.0</version.revapi-java.plugin>
+        <version.build-helper.plugin>1.9.1</version.build-helper.plugin>
 
+        <!-- Which Maven Central infra should be used -->
+        <release.endpoint>https://s01.oss.sonatype.org/</release.endpoint>
+
+        <!-- Kafka and it's dependencies MUST reflect what the Kafka version uses -->
+        <version.kafka>2.7.1</version.kafka>
+        <version.curator>4.2.0</version.curator>
+        <version.zookeeper>3.5.9</version.zookeeper>
+        <version.jackson>2.10.5</version.jackson>
+        <version.jackson.databind>2.10.5.1</version.jackson.databind>
+        <version.org.slf4j>1.7.30</version.org.slf4j>
+        <version.log4j>1.2.17</version.log4j>
+        <version.netty>4.1.59.Final</version.netty>
+
+        <!-- Scala version used to build Kafka -->
+        <version.kafka.scala>2.12</version.kafka.scala>
+
+        <!-- ANTLR -->
+        <!-- Align with Antlr runtime version pulled in via Quarkus -->
+        <version.antlr>4.8</version.antlr>
+        <version.antlr4test.plugin>1.18</version.antlr4test.plugin>
+
+        <!-- Quarkus -->
+        <quarkus.version>2.0.0.Final</quarkus.version>
+
+        <!-- Databases, should align with database drivers in debezium-bom -->
+        <version.mysql.server>5.7</version.mysql.server>
+        <version.mongo.server>3.6</version.mongo.server>
+        <version.cassandra>3.11.10</version.cassandra>
+        <version.mockito>3.0.0</version.mockito>
+
+    </properties>
     <build>
         <resources>
             <!-- Apply the properties set in the POM to the resource files -->
@@ -187,6 +267,7 @@
                 <dependency>
                     <groupId>com.oracle.instantclient</groupId>
                     <artifactId>xstreams</artifactId>
+                    <version>${version.oracle.driver}</version>
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
@@ -311,4 +392,17 @@
             </dependencies>
         </profile>
     </profiles>
+    <repositories>
+        <repository>
+            <id>kafka</id>
+            <name>kafkamaven</name>
+            <url>https://packages.confluent.io/maven/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
