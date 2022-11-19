@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>jq.io.debezium</groupId>
-    <artifactId>debezium-connector-oracle-jq</artifactId>
-    <version>1.6.4.Final</version>
+    <groupId>io.debezium</groupId>
+    <artifactId>debezium-connector-oracle</artifactId>
+    <version>1.6.4.jq</version>
     <name>Debezium Connector for Oracle</name>
     <packaging>jar</packaging>
 
@@ -416,4 +416,16 @@
             </snapshots>
         </repository>
     </repositories>
+    <distributionManagement>
+        <repository>
+            <id>nexus3</id>
+            <name>releases</name>
+            <url>http://81.70.133.193:1721/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus3</id>
+            <name>snapshots</name>
+            <url>http://81.70.133.193:1721/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
