@@ -1,6 +1,7 @@
 package io.debezium.connector.oracle.fzs.client;
 
 
+import cn.hutool.core.io.FileUtil;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -90,7 +91,9 @@ public class RequestJob implements Runnable {
                     BytesUtils.writeBytes(oStream, writeContent, 0, writeContent.length);
                     continue;
                 }
-                blockingQueue.put(dataBytes);
+                //todo zip 解压
+                byte[] content = !"1".equals(zip) ? dataBytes : BytesUtils.decompress(dataBytes);
+                blockingQueue.put(content);
                 log.info("[{}] read DATA:readed={}/{},delay={}ms", jobName, readed, readSize, (System.currentTimeMillis() - start0));
                 //4.write
                 asXML = command.addAttribute("Ok", "1").asXML();

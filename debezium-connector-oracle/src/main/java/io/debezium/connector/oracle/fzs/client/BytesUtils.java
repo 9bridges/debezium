@@ -1,10 +1,24 @@
 package io.debezium.connector.oracle.fzs.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.zip.InflaterInputStream;
 
 public final class BytesUtils {
+
+    public static byte[] decompress(byte[] data) throws IOException {
+        ByteArrayInputStream bais = new ByteArrayInputStream(data);
+        InflaterInputStream iis = new InflaterInputStream(bais);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
+        byte[] buf = new byte[4096];
+        int readSize = 0;
+        while ((readSize = iis.read(buf, 0, 4096)) > 0) {
+            baos.write(buf, 0, readSize);
+        }
+        baos.flush();
+        bais.close();
+        return baos.toByteArray();
+    }
+
     public static int readBytes(InputStream inputStream, byte[] content, int size) throws IOException {
         int read;
         int readed = 0;
