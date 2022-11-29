@@ -25,7 +25,7 @@ public class FzsProducer implements Runnable {
     private final AtomicBoolean started = new AtomicBoolean(false);
 
     FzsProducer(String ip, String port, BlockingQueue<FzsEntry> outQueue) {
-        fzsConnection = new SimpleFzsConnection();
+        fzsConnection = new CustomFzsConnection();
         fzsConnection.setIpAndPort(ip, port);
         fzsParser = new SimpleFzsParser();
         this.outQueue = outQueue;
