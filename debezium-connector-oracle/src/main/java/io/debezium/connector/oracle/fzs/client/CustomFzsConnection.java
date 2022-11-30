@@ -30,7 +30,7 @@ public class CustomFzsConnection implements FzsConnection {
     private ThreadPoolExecutor executor;
 
     CustomFzsConnection() {
-        outQueue = new LinkedBlockingQueue<>(20000);
+        outQueue = new LinkedBlockingQueue<>(20);
     }
 
     public static byte[] file2byte(String path) {
@@ -61,7 +61,7 @@ public class CustomFzsConnection implements FzsConnection {
     public void setIpAndPort(String ip, String port) {
         this.ip = ip;
         this.port = port;
-        outQueue = new LinkedBlockingQueue<>(2000);
+        outQueue = new LinkedBlockingQueue<>(20);
     }
 
     @Override
