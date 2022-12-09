@@ -154,23 +154,25 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
 
         Table table = schema.tableFor(tableId);
         if (table == null) {
-            if (connectorConfig.getTableFilters().dataCollectionFilter().isIncluded(tableId)) {
-                LOGGER.info("Table {} is new and will be captured.", tableId);
-                dispatcher.dispatchSchemaChangeEvent(
-                        tableId,
-                        new OracleSchemaChangeEventEmitter(
-                                connectorConfig,
-                                offsetContext,
-                                tableId,
-                                tableId.catalog(),
-                                tableId.schema(),
-                                getTableMetadataDdl(tableId),
-                                schema,
-                                Instant.now(),
-                                streamingMetrics));
-
-                table = schema.tableFor(tableId);
+            if (!connectorConfig.getTableFilters().dataCollectionFilter().isIncluded(tableId)) {
+                LOGGER.trace("Table {} is new but excluded, schema change skipped.", tableId);
+                return;
             }
+            LOGGER.info("Table {} is new and will be captured.", tableId);
+            dispatcher.dispatchSchemaChangeEvent(
+                    tableId,
+                    new OracleSchemaChangeEventEmitter(
+                            connectorConfig,
+                            offsetContext,
+                            tableId,
+                            tableId.catalog(),
+                            tableId.schema(),
+                            getTableMetadataDdl(tableId),
+                            schema,
+                            Instant.now(),
+                            streamingMetrics));
+
+            table = schema.tableFor(tableId);
         }
         // Xstream does not provide any before state for LOB columns and so this map will be
         // populated here by column name with the OracleValueConverters.UNAVAILABLE_VALUE.
