@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.debezium</groupId>
     <artifactId>debezium-connector-oracle</artifactId>
-    <version>1.6.4.jq-SNAPSHOT</version>
+    <version>1.6.4.jq.1.0</version>
     <name>Debezium Connector for Oracle</name>
     <packaging>jar</packaging>
 
