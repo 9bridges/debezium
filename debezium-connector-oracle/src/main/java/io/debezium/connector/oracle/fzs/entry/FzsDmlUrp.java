@@ -57,11 +57,12 @@ public class FzsDmlUrp extends FzsDmlEntryImpl {
         ByteBuf byteBuf = Unpooled.wrappedBuffer(data, 0, data.length);
         setScn(byteBuf.readerIndex(SCN_OFFSET).readLong());
         setTransactionId(Long.toString(byteBuf.readerIndex(TRANS_ID_OFFSET).readLong()));
-        byteBuf.readerIndex(65);
+        byteBuf.readerIndex(64);
         setObjectOwner(getString(byteBuf));
         setObjectName(getString(byteBuf));
         setSourceTime(Instant.now());
         byteBuf.readerIndex(byteBuf.readerIndex() + 1); // table has pk or uk
+        byteBuf.readerIndex(byteBuf.readerIndex() + 8); // scn time
 
         // put value to temp map
         int columnCount = getByteOrShort(byteBuf);
@@ -70,6 +71,7 @@ public class FzsDmlUrp extends FzsDmlEntryImpl {
         Object[] oldValues = null;
         parseUpdateColumnValues(byteBuf, newValues, 4, false);
         if (columnCount > 0) {
+            byteBuf.readerIndex(byteBuf.readerIndex() + 1); // bit flag where
             int oldColumnCount = getByteOrShort(byteBuf);
             oldValues = new Object[oldColumnCount];
             parseUpdateColumnValues(byteBuf, oldValues, 3, true);

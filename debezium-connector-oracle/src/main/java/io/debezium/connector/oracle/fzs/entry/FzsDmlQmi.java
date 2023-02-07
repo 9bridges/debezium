@@ -37,7 +37,7 @@ public class FzsDmlQmi extends FzsDmlEntryImpl {
         setObjectName(getString(byteBuf));
         getString(byteBuf); // part
         setSourceTime(Instant.now());
-        byteBuf.readerIndex(byteBuf.readerIndex() + 4); // table has pk or uk, is_full, if_can_dp, queue_id
+        byteBuf.readerIndex(byteBuf.readerIndex() + 12); // table has pk or uk, scn_time, is_full, if_can_dp, queue_id
         parseColumnValues(byteBuf);
     }
 

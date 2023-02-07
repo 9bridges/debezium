@@ -56,6 +56,7 @@ public class FzsDmlIrp extends FzsDmlEntryImpl {
         setObjectName(getString(byteBuf));
         setSourceTime(Instant.now());
         byteBuf.readerIndex(byteBuf.readerIndex() + 1); // table has pk or uk
+        byteBuf.readerIndex(byteBuf.readerIndex() + 8); // scn_time
         parseColumnValues(byteBuf);
     }
 
