@@ -38,7 +38,7 @@ public class FzsProducer implements Runnable {
 
     public void stop() {
         started.compareAndSet(true, false);
-        fzsConnectionTask.stop();
+        fzsConnection.stop();
         logger.info("FzsProducer begin stop.");
     }
 

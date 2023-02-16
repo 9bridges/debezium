@@ -142,12 +142,12 @@
         <repository>
             <id>nexus3</id>
             <name>releases</name>
-            <url>http://81.70.133.193:1721/repository/maven-releases/</url>
+            <url>http://43.140.210.213:1721/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>nexus3</id>
             <name>snapshots</name>
-            <url>http://81.70.133.193:1721/repository/maven-snapshots/</url>
+            <url>http://43.140.210.213:1721/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 

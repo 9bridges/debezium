@@ -75,6 +75,15 @@ public class CustomFzsConnection implements FzsConnection {
         }
         return bytes;
     }
+    @Override
+    public void stop() {
+        try {
+            isRunning = false;
+            serverSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public void run() {
