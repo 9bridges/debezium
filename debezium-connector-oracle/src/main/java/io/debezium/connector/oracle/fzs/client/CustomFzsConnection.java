@@ -95,6 +95,7 @@ public class CustomFzsConnection implements FzsConnection {
             if (serverSocket == null || serverSocket.isClosed()) {
                 try {
                     serverSocket = new ServerSocket(Integer.parseInt(port), 10);
+                    serverSocket.setReuseAddress(true);
                     index = 0;
                     log.info("[{}] create ServerSocket at port={}", serverID, port);
                 } catch (IOException e) {

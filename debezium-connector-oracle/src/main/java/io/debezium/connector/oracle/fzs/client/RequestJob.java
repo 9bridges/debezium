@@ -40,7 +40,7 @@ public class RequestJob implements Runnable {
         try {
             final InputStream iStream = socket.getInputStream();
             final OutputStream oStream = socket.getOutputStream();
-            socket.setSoTimeout(60000);
+
             log.info("[{}] socket timeout={}", jobName, socket.getSoTimeout());
             while (true) {
                 //1.read
@@ -48,18 +48,9 @@ public class RequestJob implements Runnable {
                 log.info("[{}] wait read REQ...", jobName);
                 long start0 = System.currentTimeMillis();
                 int readed;
-                try {
-                    readed = iStream.read(requestBytes, 0, REQUEST_MAX_SIZE);
-                } catch (IOException e) {
-                    if (e.getMessage().contains("Read timed out")) {
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException ignored) {
-                        }
-                        continue;
-                    }
-                    throw e;
-                }
+                socket.setSoTimeout(15000);
+                readed = iStream.read(requestBytes, 0, REQUEST_MAX_SIZE);
+
                 if (readed <= 0) {
                     log.warn("[{}] read readed={} break", jobName, readed);
                     break;
@@ -86,6 +77,7 @@ public class RequestJob implements Runnable {
                 log.info("[{}] wait read DATA[{}]...", jobName, readSize);
 
                 start0 = System.currentTimeMillis();
+                socket.setSoTimeout(0);
                 readed = BytesUtils.readBytes(iStream, dataBytes, readSize);
                 if (readed == 0) {
                     log.warn("[{}] read DATA:readed={}/{} continue", jobName, readed, readSize);
