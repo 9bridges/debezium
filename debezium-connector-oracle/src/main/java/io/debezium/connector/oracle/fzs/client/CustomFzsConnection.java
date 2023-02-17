@@ -95,6 +95,7 @@ public class CustomFzsConnection implements FzsConnection {
             if (serverSocket == null || serverSocket.isClosed()) {
                 try {
                     serverSocket = new ServerSocket(Integer.parseInt(port), 10);
+                    serverSocket.setReuseAddress(true);
                     index = 0;
                     log.info("[{}] create ServerSocket at port={}", serverID, port);
                 } catch (IOException e) {
@@ -113,7 +114,7 @@ public class CustomFzsConnection implements FzsConnection {
                 executor.execute(requestJob);
                 index++;
             } catch (IOException e) {
-                log.error("[{}] accept socket failed {}", serverID, e.getMessage());
+                log.warn("[{}] accept socket failed {}", serverID, e.getMessage());
             }
         }
         //System.out.printf("[%s]%s exit...\n", tName, serverName);
