@@ -98,7 +98,7 @@ public class RequestJob implements Runnable {
             }
         } catch (IOException | DocumentException e) {
             e.printStackTrace();
-            log.error("[{}] error:{}", jobName, e.getMessage());
+            log.warn("[{}] error:{}", jobName, e.getMessage());
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

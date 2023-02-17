@@ -114,7 +114,7 @@ public class CustomFzsConnection implements FzsConnection {
                 executor.execute(requestJob);
                 index++;
             } catch (IOException e) {
-                log.error("[{}] accept socket failed {}", serverID, e.getMessage());
+                log.warn("[{}] accept socket failed {}", serverID, e.getMessage());
             }
         }
         //System.out.printf("[%s]%s exit...\n", tName, serverName);

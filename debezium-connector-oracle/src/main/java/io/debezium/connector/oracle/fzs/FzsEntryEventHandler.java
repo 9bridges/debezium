@@ -76,7 +76,7 @@ class FzsEntryEventHandler {
                 fzsEntry.getSourceTime());
         try {
             if (fzsEntry instanceof FzsDmlEntry) {
-                LOGGER.info("Received DML LCR {}", fzsEntry);
+                LOGGER.trace("Received DML LCR {}", fzsEntry);
                 processDmlEntry((FzsDmlEntry) fzsEntry);
             }
             else if (fzsEntry instanceof FzsDdlEntry) {
