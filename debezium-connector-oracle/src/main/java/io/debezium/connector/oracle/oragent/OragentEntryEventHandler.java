@@ -3,11 +3,15 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.connector.oracle.fzs;
+package io.debezium.connector.oracle.oragent;
 
 import java.sql.SQLException;
 import java.time.Instant;
 
+import net.tbsoft.oragentclient.client.entry.OpCode;
+import net.tbsoft.oragentclient.client.entry.OragentDdlEntry;
+import net.tbsoft.oragentclient.client.entry.OragentDmlEntry;
+import net.tbsoft.oragentclient.client.entry.OragentEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,19 +23,15 @@ import io.debezium.connector.oracle.OracleOffsetContext;
 import io.debezium.connector.oracle.OracleSchemaChangeEventEmitter;
 import io.debezium.connector.oracle.OracleStreamingChangeEventSourceMetrics;
 import io.debezium.connector.oracle.Scn;
-import io.debezium.connector.oracle.fzs.entry.FzsDdlEntry;
-import io.debezium.connector.oracle.fzs.entry.FzsDmlEntry;
-import io.debezium.connector.oracle.fzs.entry.FzsEntry;
-import io.debezium.connector.oracle.fzs.entry.OpCode;
 import io.debezium.pipeline.ErrorHandler;
 import io.debezium.pipeline.EventDispatcher;
 import io.debezium.relational.Table;
 import io.debezium.relational.TableId;
 import io.debezium.util.Clock;
 
-class FzsEntryEventHandler {
+class OragentEntryEventHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FzsEntryEventHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OragentEntryEventHandler.class);
 
     private final OracleConnectorConfig connectorConfig;
     private final ErrorHandler errorHandler;
@@ -42,7 +42,7 @@ class FzsEntryEventHandler {
     private final boolean tablenameCaseInsensitive;
     private final OracleStreamingChangeEventSourceMetrics streamingMetrics;
 
-    public FzsEntryEventHandler(OracleConnectorConfig connectorConfig, ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock,
+    public OragentEntryEventHandler(OracleConnectorConfig connectorConfig, ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock,
                                 OracleDatabaseSchema schema, OracleOffsetContext offsetContext,
                                 boolean tablenameCaseInsensitive, OracleStreamingChangeEventSourceMetrics streamingMetrics) {
         this.connectorConfig = connectorConfig;
@@ -55,32 +55,32 @@ class FzsEntryEventHandler {
         this.streamingMetrics = streamingMetrics;
     }
 
-    public void processFzsEntry(FzsEntry fzsEntry) {
-        LOGGER.trace("Received LCR {}", fzsEntry.getEventType());
+    public void processOragentEntry(OragentEntry oragentEntry) {
+        LOGGER.trace("Received LCR {}", oragentEntry.getEventType());
 
-        final Scn fzsEntryScn = Scn.valueOf(fzsEntry.getScn());
+        final Scn oragentEntryScn = Scn.valueOf(oragentEntry.getScn());
 
         // After a restart it may happen we get the event with the last processed LCR again
         Scn offsetScn = offsetContext.getScn();
-        if (fzsEntryScn.compareTo(offsetScn) <= 0) {
+        if (oragentEntryScn.compareTo(offsetScn) <= 0) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Ignoring change event with already processed SCN {}, last SCN {}",
-                        fzsEntryScn, offsetScn);
+                        oragentEntryScn, offsetScn);
             }
             /* return; */
         }
 
-        offsetContext.setScn(Scn.valueOf(fzsEntry.getScn()));
-        offsetContext.setTransactionId(fzsEntry.getTransactionId());
-        offsetContext.tableEvent(new TableId(fzsEntry.getDatabaseName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName()),
-                fzsEntry.getSourceTime());
+        offsetContext.setScn(Scn.valueOf(oragentEntry.getScn()));
+        offsetContext.setTransactionId(oragentEntry.getTransactionId());
+        offsetContext.tableEvent(new TableId(oragentEntry.getDatabaseName(), oragentEntry.getObjectOwner(), oragentEntry.getObjectName()),
+                oragentEntry.getSourceTime());
         try {
-            if (fzsEntry instanceof FzsDmlEntry) {
-                LOGGER.trace("Received DML LCR {}", fzsEntry);
-                processDmlEntry((FzsDmlEntry) fzsEntry);
+            if (oragentEntry instanceof OragentDmlEntry) {
+                LOGGER.trace("Received DML LCR {}", oragentEntry);
+                processDmlEntry((OragentDmlEntry) oragentEntry);
             }
-            else if (fzsEntry instanceof FzsDdlEntry) {
-                dispatchSchemaChangeEvent((FzsDdlEntry) fzsEntry);
+            else if (oragentEntry instanceof OragentDdlEntry) {
+                dispatchSchemaChangeEvent((OragentDdlEntry) oragentEntry);
             }
         }
         catch (InterruptedException e) {
@@ -92,14 +92,14 @@ class FzsEntryEventHandler {
         }
     }
 
-    private void processDmlEntry(FzsDmlEntry fzsDmlEntry) throws InterruptedException {
-        LOGGER.trace("Processing DML event {}", fzsDmlEntry.getEventType());
-        if (fzsDmlEntry.getEventType() == OpCode.COMMIT) {
+    private void processDmlEntry(OragentDmlEntry oragentDmlEntry) throws InterruptedException {
+        LOGGER.trace("Processing DML event {}", oragentDmlEntry.getEventType());
+        if (oragentDmlEntry.getEventType() == OpCode.COMMIT) {
             dispatcher.dispatchTransactionCommittedEvent(offsetContext);
             return;
         }
 
-        TableId tableId = getTableId(fzsDmlEntry);
+        TableId tableId = getTableId(oragentDmlEntry);
 
         Table table = schema.tableFor(tableId);
         if (table == null) {
@@ -124,11 +124,11 @@ class FzsEntryEventHandler {
 
         dispatcher.dispatchDataChangeEvent(
                 tableId,
-                new FzsChangeRecordEmitter(offsetContext, fzsDmlEntry,
+                new OragentChangeRecordEmitter(offsetContext, oragentDmlEntry,
                         schema.tableFor(tableId), clock));
     }
 
-    private void dispatchSchemaChangeEvent(FzsDdlEntry ddlLcr) throws InterruptedException {
+    private void dispatchSchemaChangeEvent(OragentDdlEntry ddlLcr) throws InterruptedException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Processing DDL event {}", ddlLcr.getDDLString());
         }
@@ -149,12 +149,12 @@ class FzsEntryEventHandler {
                         streamingMetrics));
     }
 
-    private TableId getTableId(FzsEntry fzsEntry) {
+    private TableId getTableId(OragentEntry oragentEntry) {
         if (!this.tablenameCaseInsensitive) {
-            return new TableId(connectorConfig.getCatalogName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName());
+            return new TableId(connectorConfig.getCatalogName(), oragentEntry.getObjectOwner(), oragentEntry.getObjectName());
         }
         else {
-            return new TableId(connectorConfig.getCatalogName(), fzsEntry.getObjectOwner(), fzsEntry.getObjectName().toLowerCase());
+            return new TableId(connectorConfig.getCatalogName(), oragentEntry.getObjectOwner(), oragentEntry.getObjectName().toLowerCase());
         }
     }
 

@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.connector.oracle.fzs;
+package io.debezium.connector.oracle.oragent;
 
 import io.debezium.config.Configuration;
 import io.debezium.connector.oracle.AbstractStreamingAdapter;
@@ -22,11 +22,11 @@ import io.debezium.relational.TableId;
 import io.debezium.relational.history.HistoryRecordComparator;
 import io.debezium.util.Clock;
 
-public class FzsAdapter extends AbstractStreamingAdapter {
+public class OragentAdapter extends AbstractStreamingAdapter {
 
-    private static final String TYPE = "fzs";
+    private static final String TYPE = "oragent";
 
-    public FzsAdapter(OracleConnectorConfig connectorConfig) {
+    public OragentAdapter(OracleConnectorConfig connectorConfig) {
         super(connectorConfig);
     }
 
@@ -47,7 +47,7 @@ public class FzsAdapter extends AbstractStreamingAdapter {
 
     @Override
     public OffsetContext.Loader<OracleOffsetContext> getOffsetContextLoader() {
-        return new FzsOracleOffsetContextLoader(connectorConfig);
+        return new OragentOracleOffsetContextLoader(connectorConfig);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class FzsAdapter extends AbstractStreamingAdapter {
                                                                      OracleTaskContext taskContext,
                                                                      Configuration jdbcConfig,
                                                                      OracleStreamingChangeEventSourceMetrics streamingMetrics) {
-        return new FzsStreamingChangeEventSource(
+        return new OragentStreamingChangeEventSource(
                 connectorConfig,
                 connection,
                 dispatcher,

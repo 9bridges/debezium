@@ -9,6 +9,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.github.tb-soft</groupId>
+            <artifactId>oragent-client</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-core</artifactId>
             <version>1.6.4.Final</version>
