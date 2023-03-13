@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Optional;
@@ -166,8 +165,7 @@ public abstract class RelationalSnapshotChangeEventSource<O extends OffsetContex
     private Stream<TableId> toTableIds(Set<TableId> tableIds, Pattern pattern) {
         return tableIds
                 .stream()
-                .filter(tid -> pattern.asPredicate().test(tid.toString()))
-                .sorted();
+                .filter(tid -> pattern.asPredicate().test(tid.toString()));
     }
 
     private Set<TableId> sort(Set<TableId> capturedTables) throws Exception {
@@ -180,15 +178,15 @@ public abstract class RelationalSnapshotChangeEventSource<O extends OffsetContex
         }
         return capturedTables
                 .stream()
-                .sorted()
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private void determineCapturedTables(RelationalSnapshotContext<O> ctx) throws Exception {
-        Set<TableId> allTableIds = determineDataCollectionsToBeSnapshotted(getAllTableIds(ctx)).collect(Collectors.toSet());
+        Set<TableId> allTableIds = new LinkedHashSet<>();
+        determineDataCollectionsToBeSnapshotted(getAllTableIds(ctx)).forEach(allTableIds::add);
 
-        Set<TableId> capturedTables = new HashSet<>();
-        Set<TableId> capturedSchemaTables = new HashSet<>();
+        Set<TableId> capturedTables = new LinkedHashSet<>();
+        Set<TableId> capturedSchemaTables = new LinkedHashSet<>();
 
         for (TableId tableId : allTableIds) {
             if (connectorConfig.getTableFilters().eligibleDataCollectionFilter().isIncluded(tableId)) {
@@ -205,10 +203,7 @@ public abstract class RelationalSnapshotChangeEventSource<O extends OffsetContex
         }
 
         ctx.capturedTables = sort(capturedTables);
-        ctx.capturedSchemaTables = capturedSchemaTables
-                .stream()
-                .sorted()
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        ctx.capturedSchemaTables = new LinkedHashSet<>(capturedSchemaTables);
     }
 
     /**
