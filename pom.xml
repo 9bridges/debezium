@@ -16,8 +16,8 @@
     <packaging>pom</packaging>
     <url>https://debezium.io</url>
     <scm>
-        <connection>scm:git:git@github.com:debezium/debezium.git</connection>
-        <developerConnection>scm:git:git@github.com:debezium/debezium.git</developerConnection>
+        <connection>scm:git:git@gitee.com:tb-soft/debezium.git</connection>
+        <developerConnection>scm:git:git@gitee.com:tb-soft/debezium.git</developerConnection>
         <url>https://github.com/debezium/debezium</url>
         <tag>v1.6.4.Final</tag>
     </scm>
@@ -139,19 +139,30 @@
     </modules>
 
     <distributionManagement>
-      <repository>
-        <id>ossrh</id>
-        <name>Sonatype Staging Repository</name>
-        <url>${release.endpoint}/service/local/staging/deploy/maven2</url>
-      </repository>
-      <snapshotRepository>
-        <id>ossrh</id>
-        <name>OSS Sonatype Nexus Snapshots</name>
-        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      </snapshotRepository>
+        <repository>
+            <id>nexus3</id>
+            <name>releases</name>
+            <url>http://43.140.210.213:1721/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus3</id>
+            <name>snapshots</name>
+            <url>http://43.140.210.213:1721/repository/maven-snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <repositories>
+        <repository>
+            <id>nexus</id>
+            <name>nexus</name>
+            <url>http://43.140.210.213:1721/repository/maven-public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>confluent</id>
             <name>Confluent</name>
