@@ -448,7 +448,7 @@ public class LogMinerDmlParser implements DmlParser {
                 }
             }
             else if (!inDoubleQuote && !inSingleQuote) {
-                if (c == 'w' && lookAhead == 'h' && sql.indexOf(WHERE, index - 1) == index - 1) {
+                if (c == 'W' && lookAhead == 'H' && sql.indexOf(WHERE, index - 1) == index - 1) {
                     index -= 1;
                     break;
                 }
@@ -591,12 +591,12 @@ public class LogMinerDmlParser implements DmlParser {
                 }
             }
             else if (!inColumnValue && !inColumnName) {
-                if (c == 'a' && lookAhead == 'n' && sql.indexOf(AND, index) == index) {
+                if (c == 'A' && lookAhead == 'N' && sql.indexOf(AND, index) == index) {
                     index += 3;
                     start = index;
                     inColumnName = true;
                 }
-                else if (c == 'o' && lookAhead == 'r' && sql.indexOf(OR, index) == index) {
+                else if (c == 'O' && lookAhead == 'R' && sql.indexOf(OR, index) == index) {
                     index += 2;
                     start = index;
                     inColumnName = true;
