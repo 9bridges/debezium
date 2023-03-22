@@ -43,7 +43,7 @@ public class SqlUtils {
 
     // database system views
     private static final String DATABASE_VIEW = "V$DATABASE";
-    private static final String LOG_VIEW = "V$LOG";
+    private static final String LOG_VIEW = "V$RLOG";
     private static final String LOGFILE_VIEW = "V$LOGFILE";
     private static final String ARCHIVED_LOG_VIEW = "V$ARCHIVED_LOG";
     private static final String ARCHIVE_DEST_STATUS_VIEW = "V$ARCHIVE_DEST_STATUS";
@@ -76,12 +76,9 @@ public class SqlUtils {
     static final String INSERT_FLUSH_TABLE = "INSERT INTO " + LOGMNR_FLUSH_TABLE + " VALUES(0)";
     static final String UPDATE_FLUSH_TABLE = "UPDATE " + LOGMNR_FLUSH_TABLE + " SET LAST_SCN =";
 
-    static final String NLS_SESSION_PARAMETERS = "ALTER SESSION SET "
-            + "  NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'"
-            + "  NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF'"
-            + "  NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF TZH:TZM'"
-            + "  NLS_NUMERIC_CHARACTERS = '.,'";
-
+    static final String NLS_SESSION_PARAMETERS1 = "ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'";
+    static final String NLS_SESSION_PARAMETERS2 = "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF'";
+    static final String NLS_SESSION_PARAMETERS3 = "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF TZH:TZM'";
     private static final Logger LOGGER = LoggerFactory.getLogger(SqlUtils.class);
 
     static void setRac(boolean isRac) {
@@ -105,7 +102,7 @@ public class SqlUtils {
     }
 
     static String currentRedoLogSequenceQuery() {
-        return String.format("SELECT SEQUENCE# FROM %s WHERE STATUS = 'CURRENT'", LOG_VIEW);
+        return String.format("SELECT CUR_FILE FROM %s", LOG_VIEW);
     }
 
     static String databaseSupplementalLoggingAllCheckQuery() {
@@ -213,7 +210,8 @@ public class SqlUtils {
         sb.append("AND A.ARCHIVED = 'YES' ");
         sb.append("AND A.STATUS = 'A' ");
         sb.append("AND A.NEXT_CHANGE# > ").append(scn).append(" ");
-        sb.append("AND A.DEST_ID IN (").append(localArchiveLogDestinationsOnlyQuery(archiveDestinationName)).append(") ");
+        sb.append("AND FIRST_TIME != NEXT_TIME ");
+ //       sb.append("AND A.DEST_ID IN (").append(localArchiveLogDestinationsOnlyQuery(archiveDestinationName)).append(") ");
 
         if (!archiveLogRetention.isNegative() && !archiveLogRetention.isZero()) {
             sb.append("AND A.FIRST_TIME >= SYSDATE - (").append(archiveLogRetention.toHours()).append("/24) ");

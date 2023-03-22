@@ -57,13 +57,13 @@ public class OracleConnection extends JdbcConnection {
     /**
      * The database version.
      */
-    private final OracleDatabaseVersion databaseVersion;
+    private final OracleDatabaseVersion databaseVersion = null;
 
     public OracleConnection(Configuration config, Supplier<ClassLoader> classLoaderSupplier) {
         super(config, resolveConnectionFactory(config), classLoaderSupplier);
 
-        this.databaseVersion = resolveOracleDatabaseVersion();
-        LOGGER.info("Database Version: {}", databaseVersion.getBanner());
+        /*this.databaseVersion = resolveOracleDatabaseVersion();
+        LOGGER.info("Database Version: {}", databaseVersion.getBanner());*/
     }
 
     public void setSessionToPdb(String pdbName) {
@@ -120,7 +120,7 @@ public class OracleConnection extends JdbcConnection {
             try {
                 // Oracle 18.1 introduced BANNER_FULL as the new column rather than BANNER
                 // This column uses a different format than the legacy BANNER.
-                versionStr = queryAndMap("SELECT BANNER_FULL FROM V$VERSION WHERE BANNER_FULL LIKE 'Oracle Database%'", (rs) -> {
+                versionStr = queryAndMap("SELECT BANNER_FULL FROM V$VERSION WHERE BANNER_FULL LIKE 'DM Database%'", (rs) -> {
                     if (rs.next()) {
                         return rs.getString(1);
                     }
@@ -129,7 +129,7 @@ public class OracleConnection extends JdbcConnection {
             }
             catch (SQLException e) {
                 // exception ignored
-                if (e.getMessage().contains("ORA-00904: \"BANNER_FULL\"")) {
+                if (e.getMessage().contains("BANNER_FULL")) {
                     LOGGER.debug("BANNER_FULL column not in V$VERSION, using BANNER column as fallback");
                     versionStr = null;
                 }
@@ -141,7 +141,7 @@ public class OracleConnection extends JdbcConnection {
             // For databases prior to 18.1, a SQLException will be thrown due to BANNER_FULL not being a column and
             // this will cause versionStr to remain null, use fallback column BANNER for versions prior to 18.1.
             if (versionStr == null) {
-                versionStr = queryAndMap("SELECT BANNER FROM V$VERSION WHERE BANNER LIKE 'Oracle Database%'", (rs) -> {
+                versionStr = queryAndMap("SELECT BANNER FROM V$VERSION WHERE BANNER LIKE 'DM Database%'", (rs) -> {
                     if (rs.next()) {
                         return rs.getString(1);
                     }
@@ -329,7 +329,7 @@ public class OracleConnection extends JdbcConnection {
      * @throws IllegalStateException if the query does not return at least one row
      */
     public Scn getCurrentScn() throws SQLException {
-        return queryAndMap("SELECT CURRENT_SCN FROM V$DATABASE", (rs) -> {
+        return queryAndMap("SELECT CUR_LSN FROM V$RLOG", (rs) -> {
             if (rs.next()) {
                 return Scn.valueOf(rs.getString(1));
             }
@@ -350,23 +350,10 @@ public class OracleConnection extends JdbcConnection {
                 "WHERE NAME IS NOT NULL " +
                 "AND ARCHIVED = 'YES' " +
                 "AND STATUS = 'A' " +
-                "AND DEST_ID IN (" +
-                "SELECT DEST_ID FROM V$ARCHIVE_DEST_STATUS " +
-                "WHERE STATUS = 'VALID' " +
-                "AND TYPE = 'LOCAL' ";
-
-        if (Strings.isNullOrEmpty(archiveLogDestinationName)) {
-            query += "AND ROWNUM = 1";
-        }
-        else {
-            query += "AND UPPER(DEST_NAME) = '" + archiveLogDestinationName + "'";
-        }
-
-        query += ")";
-
+                "AND FIRST_TIME != NEXT_TIME";
         return queryAndMap(query, (rs) -> {
             if (rs.next()) {
-                return Scn.valueOf(rs.getString(1)).subtract(Scn.valueOf(1));
+                return Scn.valueOf(rs.getString(1)).add(Scn.valueOf(1));
             }
             throw new DebeziumException("Could not obtain maximum archive log scn.");
         });
@@ -380,25 +367,21 @@ public class OracleConnection extends JdbcConnection {
      * @throws SQLException if an exception occurred obtaining the DDL metadata
      */
     public String getTableMetadataDdl(TableId tableId) throws SQLException {
-        try {
-            // The storage and segment attributes aren't necessary
-            executeWithoutCommitting("begin dbms_metadata.set_transform_param(DBMS_METADATA.SESSION_TRANSFORM, 'STORAGE', false); end;");
-            executeWithoutCommitting("begin dbms_metadata.set_transform_param(DBMS_METADATA.SESSION_TRANSFORM, 'SEGMENT_ATTRIBUTES', false); end;");
+        // The storage and segment attributes aren't necessary
+        executeWithoutCommitting("begin dbms_metadata.set_transform_param(DBMS_METADATA.SESSION_TRANSFORM, 'STORAGE', false); end;");
+           /* executeWithoutCommitting("begin dbms_metadata.set_transform_param(DBMS_METADATA.SESSION_TRANSFORM, 'SEGMENT_ATTRIBUTES', false); end;");
             // In case DDL is returned as multiple DDL statements, this allows the parser to parse each separately.
             // This is only critical during streaming as during snapshot the table structure is built from JDBC driver queries.
             executeWithoutCommitting("begin dbms_metadata.set_transform_param(DBMS_METADATA.SESSION_TRANSFORM, 'SQLTERMINATOR', true); end;");
-            return queryAndMap("SELECT dbms_metadata.get_ddl('TABLE','" + tableId.table() + "','" + tableId.schema() + "') FROM DUAL", rs -> {
-                if (!rs.next()) {
-                    throw new DebeziumException("Could not get DDL metadata for table: " + tableId);
-                }
+            */
+        return queryAndMap("SELECT dbms_metadata.get_ddl('TABLE','" + tableId.table() + "','" + tableId.schema() + "') FROM DUAL", rs -> {
+            if (!rs.next()) {
+                throw new DebeziumException("Could not get DDL metadata for table: " + tableId);
+            }
 
-                Object res = rs.getObject(1);
-                return ((Clob) res).getSubString(1, (int) ((Clob) res).length());
-            });
-        }
-        finally {
-            executeWithoutCommitting("begin dbms_metadata.set_transform_param(DBMS_METADATA.SESSION_TRANSFORM, 'DEFAULT'); end;");
-        }
+            Object res = rs.getObject(1);
+            return ((Clob) res).getSubString(1, (int) ((Clob) res).length());
+        });
     }
 
     public static String connectionString(Configuration config) {

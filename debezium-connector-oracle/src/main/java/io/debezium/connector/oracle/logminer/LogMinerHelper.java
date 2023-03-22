@@ -136,8 +136,8 @@ public class LogMinerHelper {
                 ? connection.getMaxArchiveLogScn(archiveLogDestinationName)
                 : connection.getCurrentScn();
         streamingMetrics.setCurrentScn(currentScn);
-
-        Scn topScnToMine = startScn.add(Scn.valueOf(streamingMetrics.getBatchSize()));
+        return currentScn;
+      /*  Scn topScnToMine = startScn.add(Scn.valueOf(streamingMetrics.getBatchSize()));
 
         // adjust batch size
         boolean topMiningScnInFarFuture = false;
@@ -169,7 +169,7 @@ public class LogMinerHelper {
             }
             LOGGER.debug("Using Top SCN calculation {} as end SCN.", topScnToMine);
             return topScnToMine;
-        }
+        }*/
     }
 
     /**
@@ -291,7 +291,7 @@ public class LogMinerHelper {
      * @throws SQLException if anything unexpected happens
      */
     static void setNlsSessionParameters(JdbcConnection connection) throws SQLException {
-        connection.executeWithoutCommitting(SqlUtils.NLS_SESSION_PARAMETERS);
+        connection.executeWithoutCommitting(SqlUtils.NLS_SESSION_PARAMETERS1, SqlUtils.NLS_SESSION_PARAMETERS2, SqlUtils.NLS_SESSION_PARAMETERS3);
         // This is necessary so that TIMESTAMP WITH LOCAL TIME ZONE get returned in UTC
         connection.executeWithoutCommitting("ALTER SESSION SET TIME_ZONE = '00:00'");
     }

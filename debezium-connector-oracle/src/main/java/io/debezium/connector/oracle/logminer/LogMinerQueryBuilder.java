@@ -54,7 +54,7 @@ public class LogMinerQueryBuilder {
     public static String build(OracleConnectorConfig connectorConfig, OracleDatabaseSchema schema, String userName) {
         final StringBuilder query = new StringBuilder(1024);
         query.append("SELECT SCN, SQL_REDO, OPERATION_CODE, TIMESTAMP, XID, CSF, TABLE_NAME, SEG_OWNER, OPERATION, ");
-        query.append("USERNAME, ROW_ID, ROLLBACK, RS_ID ");
+        query.append("USERNAME, ROW_ID, ROLL_BACK, RS_ID ");
         query.append("FROM ").append(LOGMNR_CONTENTS_VIEW).append(" ");
 
         // These bind parameters will be bound when the query is executed by the caller.
@@ -122,7 +122,7 @@ public class LogMinerQueryBuilder {
             query.append("AND ").append(tablePredicate).append(" ");
         }
 
-        query.append("))");
+        query.append(")) ORDER BY 1");
 
         return query.toString();
     }

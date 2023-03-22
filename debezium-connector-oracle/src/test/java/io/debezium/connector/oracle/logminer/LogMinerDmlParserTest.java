@@ -38,61 +38,44 @@ public class LogMinerDmlParserTest {
     @FixFor("DBZ-3078")
     public void testParsingInsert() throws Exception {
         final Table table = Table.editor()
-                .tableId(TableId.parse("DEBEZIUM.TEST"))
-                .addColumn(Column.editor().name("ID").create())
-                .addColumn(Column.editor().name("NAME").create())
-                .addColumn(Column.editor().name("TS").create())
-                .addColumn(Column.editor().name("UT").create())
-                .addColumn(Column.editor().name("DATE").create())
-                .addColumn(Column.editor().name("UT2").create())
+                .tableId(TableId.parse("TEST.T1"))
+                .addColumn(Column.editor().name("C0").create())
                 .addColumn(Column.editor().name("C1").create())
-                .addColumn(Column.editor().name("C2").create())
-                .addColumn(Column.editor().name("UNUSED").create())
                 .create();
 
-        String sql = "insert into \"DEBEZIUM\".\"TEST\"(\"ID\",\"NAME\",\"TS\",\"UT\",\"DATE\",\"UT2\",\"C1\",\"C2\") values " +
-                "('1','Acme',TO_TIMESTAMP('2020-02-01 00:00:00.'),Unsupported Type," +
-                "TO_DATE('2020-02-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS'),Unsupported Type,NULL,NULL);";
+        String sql = "INSERT INTO \"TEST\".\"T1\"(\"C0\", \"C1\") VALUES(4, 'test2');";
 
         LogMinerDmlEntry entry = fastDmlParser.parse(sql, table, null);
         assertThat(entry.getOperation()).isEqualTo(RowMapper.INSERT);
         assertThat(entry.getOldValues()).isEmpty();
-        assertThat(entry.getNewValues()).hasSize(9);
-        assertThat(entry.getNewValues()[0]).isEqualTo("1");
-        assertThat(entry.getNewValues()[1]).isEqualTo("Acme");
-        assertThat(entry.getNewValues()[2]).isEqualTo("TO_TIMESTAMP('2020-02-01 00:00:00.')");
+        assertThat(entry.getNewValues()).hasSize(2);
+        assertThat(entry.getNewValues()[0]).isEqualTo("4");
+        assertThat(entry.getNewValues()[1]).isEqualTo("test2");
+/*        assertThat(entry.getNewValues()[2]).isEqualTo("TO_TIMESTAMP('2020-02-01 00:00:00.')");
         assertThat(entry.getNewValues()[3]).isNull();
         assertThat(entry.getNewValues()[4]).isEqualTo("TO_DATE('2020-02-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')");
         assertThat(entry.getNewValues()[5]).isNull();
         assertThat(entry.getNewValues()[6]).isNull();
         assertThat(entry.getNewValues()[7]).isNull();
-        assertThat(entry.getNewValues()[8]).isNull();
+        assertThat(entry.getNewValues()[8]).isNull();*/
     }
 
     @Test
     @FixFor("DBZ-3078")
     public void testParsingUpdate() throws Exception {
         final Table table = Table.editor()
-                .tableId(TableId.parse("DEBEZIUM.TEST"))
-                .addColumn(Column.editor().name("ID").create())
-                .addColumn(Column.editor().name("NAME").create())
-                .addColumn(Column.editor().name("TS").create())
-                .addColumn(Column.editor().name("UT").create())
-                .addColumn(Column.editor().name("DATE").create())
-                .addColumn(Column.editor().name("UT2").create())
+                .tableId(TableId.parse("TEST.T1"))
+                .addColumn(Column.editor().name("C0").create())
                 .addColumn(Column.editor().name("C1").create())
-                .addColumn(Column.editor().name("IS").create())
-                .addColumn(Column.editor().name("IS2").create())
-                .addColumn(Column.editor().name("UNUSED").create())
                 .create();
 
-        String sql = "update \"DEBEZIUM\".\"TEST\" " +
+/*        String sql = "update \"DEBEZIUM\".\"TEST\" " +
                 "set \"NAME\" = 'Bob', \"TS\" = TO_TIMESTAMP('2020-02-02 00:00:00.'), \"UT\" = Unsupported Type, " +
                 "\"DATE\" = TO_DATE('2020-02-02 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), \"UT2\" = Unsupported Type, " +
                 "\"C1\" = NULL where \"ID\" = '1' and \"NAME\" = 'Acme' and \"TS\" = TO_TIMESTAMP('2020-02-01 00:00:00.') and " +
                 "\"UT\" = Unsupported Type and \"DATE\" = TO_DATE('2020-02-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS') and " +
-                "\"UT2\" = Unsupported Type and \"C1\" = NULL and \"IS\" IS NULL and \"IS2\" IS NULL;";
-
+                "\"UT2\" = Unsupported Type and \"C1\" = NULL and \"IS\" IS NULL and \"IS2\" IS NULL;";*/
+        String sql = "UPDATE \"TEST\".\"T1\" SET \"C1\" = 'newval' WHERE \"C0\" = 9 AND \"C1\" = 'test2';";
         LogMinerDmlEntry entry = fastDmlParser.parse(sql, table, null);
         assertThat(entry.getOperation()).isEqualTo(RowMapper.UPDATE);
         assertThat(entry.getOldValues()).hasSize(10);

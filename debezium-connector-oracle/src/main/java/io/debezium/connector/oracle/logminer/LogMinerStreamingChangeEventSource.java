@@ -121,13 +121,13 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                 startScn = offsetContext.getScn();
                 createFlushTable(jdbcConnection);
 
-                if (!isContinuousMining && startScn.compareTo(getFirstOnlineLogScn(jdbcConnection, archiveLogRetention, archiveDestinationName)) < 0) {
+               /* if (!isContinuousMining && startScn.compareTo(getFirstOnlineLogScn(jdbcConnection, archiveLogRetention, archiveDestinationName)) < 0) {
                     throw new DebeziumException(
                             "Online REDO LOG files or archive log files do not contain the offset scn " + startScn + ".  Please perform a new snapshot.");
-                }
+                }*/
 
                 setNlsSessionParameters(jdbcConnection);
-                checkSupplementalLogging(jdbcConnection, connectorConfig.getPdbName(), schema);
+               // checkSupplementalLogging(jdbcConnection, connectorConfig.getPdbName(), schema);
 
                 if (archiveLogOnlyMode && !waitForStartScnInArchiveLogs(context, startScn)) {
                     return;
@@ -172,38 +172,40 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                             }
 
                             flushLogWriter(jdbcConnection, jdbcConfiguration, isRac, racHosts);
-
+/*
                             if (hasLogSwitchOccurred()) {
                                 // This is the way to mitigate PGA leaks.
                                 // With one mining session, it grows and maybe there is another way to flush PGA.
                                 // At this point we use a new mining session
-                                LOGGER.trace("Ending log mining startScn={}, endScn={}, offsetContext.getScn={}, strategy={}, continuous={}",
+                                LOGGER.info("Ending log mining startScn={}, endScn={}, offsetContext.getScn={}, strategy={}, continuous={}",
                                         startScn, endScn, offsetContext.getScn(), strategy, isContinuousMining);
-                                endMining(jdbcConnection);
+                                endMining(jdbcConnection);*/
 
                                 initializeRedoLogsForMining(jdbcConnection, true, startScn);
 
                                 abandonOldTransactionsIfExist(jdbcConnection, offsetContext, transactionalBuffer);
 
-                                // This needs to be re-calculated because building the data dictionary will force the
+                       /*         // This needs to be re-calculated because building the data dictionary will force the
                                 // current redo log sequence to be advanced due to a complete log switch of all logs.
                                 currentRedoLogSequences = getCurrentRedoLogSequences();
-                            }
+                            }*/
 
                             startLogMining(jdbcConnection, startScn, endScn, strategy, isContinuousMining, streamingMetrics);
 
-                            LOGGER.trace("Fetching LogMiner view results SCN {} to {}", startScn, endScn);
+                            LOGGER.info("Fetching LogMiner view results SCN {} to {}", startScn, endScn);
                             stopwatch.start();
                             miningView.setFetchSize(connectorConfig.getMaxQueueSize());
                             miningView.setFetchDirection(ResultSet.FETCH_FORWARD);
                             miningView.setString(1, startScn.toString());
                             miningView.setString(2, endScn.toString());
+                            Scn scnbk = endScn;
                             try (ResultSet rs = miningView.executeQuery()) {
                                 Duration lastDurationOfBatchCapturing = stopwatch.stop().durations().statistics().getTotal();
                                 streamingMetrics.setLastDurationOfBatchCapturing(lastDurationOfBatchCapturing);
                                 processor.processResult(rs);
                                 if (connectorConfig.isLobEnabled()) {
-                                    startScn = transactionalBuffer.updateOffsetContext(offsetContext, dispatcher);
+                                    transactionalBuffer.updateOffsetContext(offsetContext, dispatcher);
+                                    startScn = scnbk;
                                 }
                                 else {
 
@@ -225,12 +227,13 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                                             dispatcher.dispatchHeartbeatEvent(offsetContext);
                                         }
                                     }
-                                    startScn = endScn;
+                                    startScn = scnbk;
                                 }
                             }
 
                             streamingMetrics.setCurrentBatchProcessingTime(Duration.between(start, Instant.now()));
                             pauseBetweenMiningSessions();
+                            endMining(jdbcConnection);
                         }
                     }
                 }

@@ -44,14 +44,14 @@ public class LogMinerDmlParser implements DmlParser {
 
     private static final String NULL_SENTINEL = "${DBZ_NULL}";
     private static final String NULL = "NULL";
-    private static final String INSERT_INTO = "insert into ";
-    private static final String UPDATE = "update ";
-    private static final String DELETE_FROM = "delete from ";
-    private static final String AND = "and ";
-    private static final String OR = "or ";
-    private static final String SET = " set ";
-    private static final String WHERE = " where ";
-    private static final String VALUES = " values ";
+    private static final String INSERT_INTO = "INSERT INTO ";
+    private static final String UPDATE = "UPDATE ";
+    private static final String DELETE_FROM = "DELETE FROM ";
+    private static final String AND = "AND ";
+    private static final String OR = "OR ";
+    private static final String SET = " SET ";
+    private static final String WHERE = " WHERE ";
+    private static final String VALUES = " VALUES";
     private static final String IS_NULL = "IS NULL";
     // Use by Oracle for specific data types that cannot be represented in SQL
     private static final String UNSUPPORTED = "Unsupported";
@@ -71,11 +71,11 @@ public class LogMinerDmlParser implements DmlParser {
         }
         if (sql != null && sql.length() > 0) {
             switch (sql.charAt(0)) {
-                case 'i':
+                case 'I':
                     return parseInsert(sql, table);
-                case 'u':
+                case 'U':
                     return parseUpdate(sql, table);
-                case 'd':
+                case 'D':
                     return parseDelete(sql, table);
             }
         }
@@ -234,7 +234,7 @@ public class LogMinerDmlParser implements DmlParser {
                 if (inQuote) {
                     inQuote = false;
                     columnNames[columnIndex++] = sql.substring(start + 1, index);
-                    start = index + 2;
+                    start = index + 3;
                     continue;
                 }
                 inQuote = true;
@@ -306,7 +306,7 @@ public class LogMinerDmlParser implements DmlParser {
                 }
 
                 columnIndex++;
-                start = index + 1;
+                start = index + 2;
             }
         }
 

@@ -702,7 +702,8 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
         LOG_MINER("LogMiner") {
             @Override
             public String getConnectionUrl() {
-                return "jdbc:oracle:thin:@${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
+            //    return "jdbc:oracle:thin:@${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
+                return "jdbc:dm://${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
             }
 
             @Override
