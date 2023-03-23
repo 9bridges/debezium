@@ -10,14 +10,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.debezium</groupId>
     <artifactId>debezium-build-parent</artifactId>
-    <version>1.6.4.Final</version>
+    <version>1.6.4.jq-1.1</version>
     <name>Debezium Build Aggregator</name>
     <description>Debezium is an open source change data capture platform</description>
     <packaging>pom</packaging>
     <url>https://debezium.io</url>
     <scm>
-        <connection>scm:git:git@github.com:debezium/debezium.git</connection>
-        <developerConnection>scm:git:git@github.com:debezium/debezium.git</developerConnection>
+        <connection>scm:git:git@gitee.com:tb-soft/debezium.git</connection>
+        <developerConnection>scm:git:git@gitee.com:tb-soft/debezium.git</developerConnection>
         <url>https://github.com/debezium/debezium</url>
         <tag>v1.6.4.Final</tag>
     </scm>
@@ -131,6 +131,7 @@
         <module>debezium-connector-postgres</module>
         <module>debezium-connector-mongodb</module>
         <module>debezium-connector-sqlserver</module>
+        <module>debezium-connector-oracle</module>
         <module>debezium-microbenchmark</module>
         <module>debezium-quarkus-outbox</module>
         <module>debezium-scripting</module>
@@ -152,6 +153,17 @@
     </distributionManagement>
 
     <repositories>
+        <repository>
+            <id>nexus</id>
+            <name>nexus</name>
+            <url>http://43.140.210.213:1721/repository/maven-public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>confluent</id>
             <name>Confluent</name>
