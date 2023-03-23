@@ -10,6 +10,7 @@ import io.debezium.data.Envelope.Operation;
 import io.debezium.pipeline.spi.OffsetContext;
 import io.debezium.relational.Table;
 import io.debezium.util.Clock;
+
 import net.tbsoft.oragentclient.client.entry.OragentDmlEntry;
 
 public class OragentChangeRecordEmitter extends BaseChangeRecordEmitter<Object> {
@@ -17,7 +18,7 @@ public class OragentChangeRecordEmitter extends BaseChangeRecordEmitter<Object> 
     private final OragentDmlEntry oragentDmlEntry;
 
     public OragentChangeRecordEmitter(OffsetContext offset, OragentDmlEntry lcr,
-                                  Table table, Clock clock) {
+                                      Table table, Clock clock) {
         super(offset, table, clock);
         this.oragentDmlEntry = lcr;
     }
