@@ -95,9 +95,9 @@ public class DMValueConverters extends JdbcValueConverters {
             .appendOffset("+HH:MM", "")
             .toFormatter();
 
-    private static final String EMPTY_BLOB_FUNCTION = "EMPTY_BLOB()";
-    private static final String EMPTY_CLOB_FUNCTION = "EMPTY_CLOB()";
-    private static final String HEXTORAW_FUNCTION_START = "HEXTORAW('";
+    private static final String EMPTY_BLOB_FUNCTION = "EMPTY_BLOB";
+    private static final String EMPTY_CLOB_FUNCTION = "EMPTY_CLOB";
+    private static final String HEXTORAW_FUNCTION_START = "0x";
     private static final String HEXTORAW_FUNCTION_END = "')";
 
     private static final Pattern TO_TIMESTAMP = Pattern.compile("TO_TIMESTAMP\\('(.*)'\\)", Pattern.CASE_INSENSITIVE);
@@ -630,6 +630,10 @@ public class DMValueConverters extends JdbcValueConverters {
         }
 
         if (data.length() != 0) {
+            if (!data.contains(" ")) {
+                data += " 00:00:00";
+            }
+
             dateTime = LocalDateTime.from(TIMESTAMP_FORMATTER.parse(data));
             return dateTime.atZone(GMT_ZONE_ID).toInstant();
         }
@@ -729,7 +733,7 @@ public class DMValueConverters extends JdbcValueConverters {
      */
     private String getHexToRawHexString(String hexToRawValue) {
         if (isHexToRawFunctionCall(hexToRawValue)) {
-            return hexToRawValue.substring(10, hexToRawValue.length() - 2);
+            return hexToRawValue.substring(3);
         }
         return hexToRawValue;
     }
@@ -741,6 +745,6 @@ public class DMValueConverters extends JdbcValueConverters {
      * @return true if the value is a {@code HEXTORAW} function call; false otherwise.
      */
     private boolean isHexToRawFunctionCall(String value) {
-        return value != null && value.startsWith(HEXTORAW_FUNCTION_START) && value.endsWith(HEXTORAW_FUNCTION_END);
+        return value != null && value.startsWith(HEXTORAW_FUNCTION_START);
     }
 }

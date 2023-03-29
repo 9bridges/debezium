@@ -698,7 +698,7 @@ public final class TransactionalBuffer implements AutoCloseable {
             if (isForSameTableOrScn(event, prevEvent)) {
                 LOGGER.trace("\tMerging SEL_LOB_LOCATOR with previous INSERT event");
                 Object prevValue = prevEvent.getEntry().getNewValues()[columnIndex];
-                if (!"EMPTY_CLOB()".equals(prevValue) && !"EMPTY_BLOB()".equals(prevValue)) {
+                if (!"EMPTY_CLOB".equals(prevValue) && !"EMPTY_BLOB".equals(prevValue)) {
                     throw new DebeziumException("Expected to find column '" + event.getColumnName() + "' in table '"
                             + prevEvent.getTableId() + "' to be initialized as an empty LOB value.'");
                 }
@@ -834,7 +834,7 @@ public final class TransactionalBuffer implements AutoCloseable {
             }
 
             final LobWriteEvent writeEvent = (LobWriteEvent) event;
-            if (binaryData && !writeEvent.getData().startsWith("HEXTORAW('") && !writeEvent.getData().endsWith("')")) {
+            if (binaryData && !writeEvent.getData().startsWith("0x")) {
                 throw new DebeziumException("Unexpected BLOB data chunk: " + writeEvent.getData());
             }
 
@@ -938,11 +938,11 @@ public final class TransactionalBuffer implements AutoCloseable {
         for (int i = 0; i < event.getEntry().getNewValues().length; ++i) {
             Object value = event.getEntry().getNewValues()[i];
             Object prevValue = prevEvent.getEntry().getNewValues()[i];
-            if (prevEventIsInsert && "EMPTY_CLOB()".equals(prevValue)) {
+            if (prevEventIsInsert && "EMPTY_CLOB".equals(prevValue)) {
                 LOGGER.trace("\tAssigning column index {} with updated CLOB value.", i);
                 prevEvent.getEntry().getNewValues()[i] = value;
             }
-            else if (prevEventIsInsert && "EMPTY_BLOB()".equals(prevValue)) {
+            else if (prevEventIsInsert && "EMPTY_BLOB".equals(prevValue)) {
                 LOGGER.trace("\tAssigning column index {} with updated BLOB value.", i);
                 prevEvent.getEntry().getNewValues()[i] = value;
             }

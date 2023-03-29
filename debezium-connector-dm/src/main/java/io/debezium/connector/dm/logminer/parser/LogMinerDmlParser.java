@@ -306,6 +306,13 @@ public class LogMinerDmlParser implements DmlParser {
                 }
 
                 columnIndex++;
+                String ss = sql.substring(index);
+                if (sql.indexOf(", DATE", index) == index) {
+                    index += 4;
+                }
+                else if (sql.indexOf(", TIMESTAMP", index) == index) {
+                    index += 9;
+                }
                 start = index + 2;
             }
         }
@@ -362,6 +369,12 @@ public class LogMinerDmlParser implements DmlParser {
                 inColumnValue = true;
                 // DM SQL generated is always ' = ', skipping following space
                 index += 1;
+                if (sql.indexOf(" DATE", index) == index) {
+                    index += 4;
+                }
+                else if (sql.indexOf(" TIMESTAMP", index) == index) {
+                    index += 9;
+                }
                 start = index + 1;
             }
             else if (nested == 0 & c == ' ' && lookAhead == '|') {
@@ -514,6 +527,12 @@ public class LogMinerDmlParser implements DmlParser {
                 inColumnValue = true;
                 // DM SQL generated is always ' = ', skipping following space
                 index += 1;
+                if (sql.indexOf(" DATE", index) == index) {
+                    index += 4;
+                }
+                else if (sql.indexOf(" TIMESTAMP", index) == index) {
+                    index += 9;
+                }
                 start = index + 1;
             }
             else if (c == 'I' && !inColumnName && !inColumnValue) {

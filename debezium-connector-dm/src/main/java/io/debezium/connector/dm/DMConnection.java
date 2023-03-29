@@ -313,6 +313,12 @@ public class DMConnection extends JdbcConnection {
                                 .scale(null)
                                 .create());
             }
+            else if (column.jdbcType() == Types.DATE) {
+                editor.addColumn(
+                        column.edit()
+                                .jdbcType(Types.TIMESTAMP)
+                                .create());
+            }
             // NUMBER columns without scale value have it set to -127 instead of null;
             // let's rectify that
             else if (column.jdbcType() == OracleTypes.NUMBER) {
