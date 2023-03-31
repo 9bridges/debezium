@@ -9,7 +9,6 @@ import static io.debezium.connector.dm.logminer.LogMinerHelper.buildDataDictiona
 import static io.debezium.connector.dm.logminer.LogMinerHelper.createFlushTable;
 import static io.debezium.connector.dm.logminer.LogMinerHelper.endMining;
 import static io.debezium.connector.dm.logminer.LogMinerHelper.flushLogWriter;
-import static io.debezium.connector.dm.logminer.LogMinerHelper.getCurrentRedoLogFiles;
 import static io.debezium.connector.dm.logminer.LogMinerHelper.getEndScn;
 import static io.debezium.connector.dm.logminer.LogMinerHelper.getLastScnToAbandon;
 import static io.debezium.connector.dm.logminer.LogMinerHelper.getSystime;
@@ -27,7 +26,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +35,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.debezium.DebeziumException;
 import io.debezium.config.Configuration;
 import io.debezium.connector.dm.DMConnection;
 import io.debezium.connector.dm.DMConnectorConfig;
@@ -79,7 +78,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
 
     private Scn startScn;
     private Scn endScn;
-    private List<BigInteger> currentRedoLogSequences;
+    private List<BigInteger> currentArchivedLogSequences;
 
     public LogMinerStreamingChangeEventSource(DMConnectorConfig connectorConfig,
                                               DMConnection jdbcConnection, EventDispatcher<TableId> dispatcher,
@@ -108,8 +107,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
     /**
      * This is the loop to get changes from LogMiner
      *
-     * @param context
-     *         change event source context
+     * @param context change event source context
      */
     @Override
     public void execute(ChangeEventSourceContext context, DMOffsetContext offsetContext) {
@@ -128,11 +126,17 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                 setNlsSessionParameters(jdbcConnection);
                 // checkSupplementalLogging(jdbcConnection, connectorConfig.getPdbName(), schema);
 
-                if (archiveLogOnlyMode && !waitForStartScnInArchiveLogs(context, startScn)) {
+                if (!waitForStartScnInArchiveLogs(context, startScn)) {
                     return;
                 }
-
-                initializeRedoLogsForMining(jdbcConnection, false, startScn);
+                try {
+                    initializeRedoLogsForMining(jdbcConnection, false, startScn);
+                }
+                catch (DebeziumException e) {
+                    if (!waitForStartScnInArchiveLogs(context, startScn)) {
+                        return;
+                    }
+                }
 
                 HistoryRecorder historyRecorder = connectorConfig.getLogMiningHistoryRecorder();
 
@@ -148,13 +152,13 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                     try (PreparedStatement miningView = jdbcConnection.connection().prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY,
                             ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT)) {
 
-                        currentRedoLogSequences = getCurrentRedoLogSequences();
+                        currentArchivedLogSequences = getCurrentArchivedLogSequences();
                         Stopwatch stopwatch = Stopwatch.reusable();
                         while (context.isRunning()) {
                             // Calculate time difference before each mining session to detect time zone offset changes (e.g. DST) on database server
                             streamingMetrics.calculateTimeDifference(getSystime(jdbcConnection));
 
-                            if (archiveLogOnlyMode && !waitForStartScnInArchiveLogs(context, startScn)) {
+                            if (!waitForStartScnInArchiveLogs(context, startScn)) {
                                 break;
                             }
 
@@ -165,33 +169,28 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                             // This is a small window where when archive log only mode has completely caught up to the last
                             // record in the archive logs that both the start and end values are identical. In this use
                             // case we want to pause and restart the loop waiting for a new archive log before proceeding.
-                            if (archiveLogOnlyMode && startScn.equals(endScn)) {
+                            if (startScn.equals(endScn)) {
                                 pauseBetweenMiningSessions();
                                 continue;
                             }
 
                             flushLogWriter(jdbcConnection, jdbcConfiguration, isRac, racHosts);
-                            /*
-                             * if (hasLogSwitchOccurred()) {
-                             * // This is the way to mitigate PGA leaks.
-                             * // With one mining session, it grows and maybe there is another way to flush PGA.
-                             * // At this point we use a new mining session
-                             * LOGGER.info("Ending log mining startScn={}, endScn={}, offsetContext.getScn={}, strategy={}, continuous={}",
-                             * startScn, endScn, offsetContext.getScn(), strategy, isContinuousMining);
-                             * endMining(jdbcConnection);
-                             */
+                            /* if (hasLogSwitchOccurred()) { */
+                            // This is the way to mitigate PGA leaks.
+                            // With one mining session, it grows and maybe there is another way to flush PGA.
+                            // At this point we use a new mining session
+                            LOGGER.info("Ending log mining startScn={}, endScn={}, offsetContext.getScn={}, strategy={}, continuous={}",
+                                    startScn, endScn, offsetContext.getScn(), strategy, isContinuousMining);
 
                             initializeRedoLogsForMining(jdbcConnection, true, startScn);
 
                             abandonOldTransactionsIfExist(jdbcConnection, offsetContext, transactionalBuffer);
 
-                            /*
-                             * // This needs to be re-calculated because building the data dictionary will force the
-                             * // current redo log sequence to be advanced due to a complete log switch of all logs.
-                             * currentRedoLogSequences = getCurrentRedoLogSequences();
-                             * }
-                             */
-
+                            // This needs to be re-calculated because building the data dictionary will force the
+                            // current redo log sequence to be advanced due to a complete log switch of all logs.
+                            currentArchivedLogSequences = getCurrentArchivedLogSequences();
+                            /* } */
+                            LOGGER.info("Fetching LogMiner view results SCN {} to {}", startScn, endScn);
                             startLogMining(jdbcConnection, startScn, endScn, strategy, isContinuousMining, streamingMetrics);
 
                             LOGGER.info("Fetching LogMiner view results SCN {} to {}", startScn, endScn);
@@ -206,8 +205,8 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                                 streamingMetrics.setLastDurationOfBatchCapturing(lastDurationOfBatchCapturing);
                                 processor.processResult(rs);
                                 if (connectorConfig.isLobEnabled()) {
-                                    transactionalBuffer.updateOffsetContext(offsetContext, dispatcher);
                                     startScn = scnbk;
+                                    transactionalBuffer.updateOffsetContext(offsetContext, dispatcher);
                                 }
                                 else {
 
@@ -294,32 +293,34 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
      * @throws SQLException if a database exception occurred
      */
     private boolean hasLogSwitchOccurred() throws SQLException {
-        final List<BigInteger> newSequences = getCurrentRedoLogSequences();
-        if (!newSequences.equals(currentRedoLogSequences)) {
-            LOGGER.debug("Current log sequence(s) is now {}, was {}", newSequences, currentRedoLogSequences);
+        final List<BigInteger> newSequences = getCurrentArchivedLogSequences();
+        if (!newSequences.equals(currentArchivedLogSequences)) {
+            LOGGER.debug("Current log sequence(s) is now {}, was {}", newSequences, currentArchivedLogSequences);
 
-            currentRedoLogSequences = newSequences;
+            currentArchivedLogSequences = newSequences;
 
-            final Map<String, String> logStatuses = jdbcConnection.queryAndMap(SqlUtils.redoLogStatusQuery(), rs -> {
-                Map<String, String> results = new LinkedHashMap<>();
-                while (rs.next()) {
-                    results.put(rs.getString(1), rs.getString(2));
-                }
-                return results;
-            });
-
-            final int logSwitchCount = jdbcConnection.queryAndMap(SqlUtils.switchHistoryQuery(archiveDestinationName), rs -> {
-                if (rs.next()) {
-                    return rs.getInt(2);
-                }
-                return 0;
-            });
-
-            final Set<String> fileNames = getCurrentRedoLogFiles(jdbcConnection);
-
-            streamingMetrics.setRedoLogStatus(logStatuses);
-            streamingMetrics.setSwitchCount(logSwitchCount);
-            streamingMetrics.setCurrentLogFileName(fileNames);
+            /*
+             * final Map<String, String> logStatuses = jdbcConnection.queryAndMap(SqlUtils.redoLogStatusQuery(), rs -> {
+             * Map<String, String> results = new LinkedHashMap<>();
+             * while (rs.next()) {
+             * results.put(rs.getString(1), rs.getString(2));
+             * }
+             * return results;
+             * });
+             *
+             * final int logSwitchCount = jdbcConnection.queryAndMap(SqlUtils.switchHistoryQuery(archiveDestinationName), rs -> {
+             * if (rs.next()) {
+             * return rs.getInt(2);
+             * }
+             * return 0;
+             * });
+             *
+             * final Set<String> fileNames = getCurrentRedoLogFiles(jdbcConnection);
+             *
+             * streamingMetrics.setRedoLogStatus(logStatuses);
+             * streamingMetrics.setSwitchCount(logSwitchCount);
+             * streamingMetrics.setCurrentLogFileName(fileNames);
+             */
 
             return true;
         }
@@ -329,15 +330,15 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
 
     /**
      * Get the current redo log sequence(s).
-     *
+     * <p>
      * In an DM RAC environment, there are multiple current redo logs and therefore this method
      * returns multiple values, each relating to a single RAC node in the DM cluster.
      *
      * @return list of sequence numbers
      * @throws SQLException if a database exception occurred
      */
-    private List<BigInteger> getCurrentRedoLogSequences() throws SQLException {
-        return jdbcConnection.queryAndMap(SqlUtils.currentRedoLogSequenceQuery(), rs -> {
+    private List<BigInteger> getCurrentArchivedLogSequences() throws SQLException {
+        return jdbcConnection.queryAndMap(SqlUtils.currentArchivedLogSequenceQuery(), rs -> {
             List<BigInteger> sequences = new ArrayList<>();
             while (rs.next()) {
                 sequences.add(new BigInteger(rs.getString(1)));
@@ -354,10 +355,10 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
     /**
      * Waits for the starting system change number to exist in the archive logs before returning.
      *
-     * @param context the change event source context
+     * @param context  the change event source context
      * @param startScn the starting system change number
      * @return true if the code should continue, false if the code should end.
-     * @throws SQLException if a database exception occurred
+     * @throws SQLException         if a database exception occurred
      * @throws InterruptedException if the pause between checks is interrupted
      */
     private boolean waitForStartScnInArchiveLogs(ChangeEventSourceContext context, Scn startScn) throws SQLException, InterruptedException {
@@ -390,7 +391,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
     private boolean isStartScnInArchiveLogs(Scn startScn) throws SQLException {
         List<LogFile> logs = LogMinerHelper.getLogFilesForOffsetScn(jdbcConnection, startScn, archiveLogRetention, archiveLogOnlyMode, archiveDestinationName);
         return logs.stream()
-                .anyMatch(l -> l.getFirstScn().compareTo(startScn) <= 0 && l.getNextScn().compareTo(startScn) > 0 && l.getType().equals(LogFile.Type.ARCHIVE));
+                .anyMatch(l -> l.getFirstScn().compareTo(startScn) <= 0 && l.getNextScn().compareTo(startScn) >= 0 && l.getType().equals(LogFile.Type.ARCHIVE));
     }
 
     @Override

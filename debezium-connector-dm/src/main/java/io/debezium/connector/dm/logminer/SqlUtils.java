@@ -99,8 +99,8 @@ public class SqlUtils {
         return String.format("SELECT F.MEMBER FROM %s LOG, %s F  WHERE LOG.GROUP#=F.GROUP# AND LOG.STATUS='CURRENT'", LOG_VIEW, LOGFILE_VIEW);
     }
 
-    static String currentRedoLogSequenceQuery() {
-        return String.format("SELECT CUR_FILE FROM %s", LOG_VIEW);
+    static String currentArchivedLogSequenceQuery() {
+        return String.format("SELECT max(sequence#) FROM %s", ARCHIVED_LOG_VIEW);
     }
 
     static String databaseSupplementalLoggingAllCheckQuery() {
@@ -190,25 +190,14 @@ public class SqlUtils {
         // logs may be added to a single mining session.
 
         final StringBuilder sb = new StringBuilder();
-        if (!archiveLogOnlyMode) {
-            sb.append("SELECT MIN(F.MEMBER) AS FILE_NAME, L.FIRST_CHANGE# FIRST_CHANGE, L.NEXT_CHANGE# NEXT_CHANGE, L.ARCHIVED, ");
-            sb.append("L.STATUS, 'ONLINE' AS TYPE, L.SEQUENCE# AS SEQ, 'NO' AS DICT_START, 'NO' AS DICT_END ");
-            sb.append("FROM ").append(LOGFILE_VIEW).append(" F, ").append(LOG_VIEW).append(" L ");
-            sb.append("LEFT JOIN ").append(ARCHIVED_LOG_VIEW).append(" A ");
-            sb.append("ON A.FIRST_CHANGE# = L.FIRST_CHANGE# AND A.NEXT_CHANGE# = L.NEXT_CHANGE# ");
-            sb.append("WHERE A.FIRST_CHANGE# IS NULL ");
-            sb.append("AND F.GROUP# = L.GROUP# ");
-            sb.append("GROUP BY F.GROUP#, L.FIRST_CHANGE#, L.NEXT_CHANGE#, L.STATUS, L.ARCHIVED, L.SEQUENCE# ");
-            sb.append("UNION ");
-        }
         sb.append("SELECT A.NAME AS FILE_NAME, A.FIRST_CHANGE# FIRST_CHANGE, A.NEXT_CHANGE# NEXT_CHANGE, 'YES', ");
         sb.append("NULL, 'ARCHIVED', A.SEQUENCE# AS SEQ, A.DICTIONARY_BEGIN, A.DICTIONARY_END ");
         sb.append("FROM ").append(ARCHIVED_LOG_VIEW).append(" A ");
         sb.append("WHERE A.NAME IS NOT NULL ");
         sb.append("AND A.ARCHIVED = 'YES' ");
         sb.append("AND A.STATUS = 'A' ");
-        sb.append("AND A.NEXT_CHANGE# > ").append(scn).append(" ");
-        sb.append("AND FIRST_TIME != NEXT_TIME ");
+        sb.append("AND A.NEXT_CHANGE# >= ").append(scn).append(" ");
+        /* sb.append("AND FIRST_TIME != NEXT_TIME "); */
         // sb.append("AND A.DEST_ID IN (").append(localArchiveLogDestinationsOnlyQuery(archiveDestinationName)).append(") ");
 
         if (!archiveLogRetention.isNegative() && !archiveLogRetention.isZero()) {

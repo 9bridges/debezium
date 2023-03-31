@@ -363,11 +363,10 @@ public class DMConnection extends JdbcConnection {
         String query = "SELECT MAX(NEXT_CHANGE#) FROM V$ARCHIVED_LOG " +
                 "WHERE NAME IS NOT NULL " +
                 "AND ARCHIVED = 'YES' " +
-                "AND STATUS = 'A' " +
-                "AND FIRST_TIME != NEXT_TIME";
+                "AND STATUS = 'A' ";
         return queryAndMap(query, (rs) -> {
             if (rs.next()) {
-                return Scn.valueOf(rs.getString(1)).add(Scn.valueOf(1));
+                return Scn.valueOf(rs.getString(1));
             }
             throw new DebeziumException("Could not obtain maximum archive log scn.");
         });

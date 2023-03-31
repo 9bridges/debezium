@@ -132,9 +132,7 @@ public class LogMinerHelper {
     static Scn getEndScn(DMConnection connection, Scn startScn, Scn prevEndScn, DMStreamingChangeEventSourceMetrics streamingMetrics, int defaultBatchSize,
                          boolean lobEnabled, boolean archiveLogOnlyMode, String archiveLogDestinationName)
             throws SQLException {
-        Scn currentScn = archiveLogOnlyMode
-                ? connection.getMaxArchiveLogScn(archiveLogDestinationName)
-                : connection.getCurrentScn();
+        Scn currentScn = connection.getMaxArchiveLogScn(archiveLogDestinationName);
         streamingMetrics.setCurrentScn(currentScn);
         return currentScn;
         /*
@@ -483,7 +481,7 @@ public class LogMinerHelper {
                         lastProcessedScn + "is not yet in any available archive logs. " +
                         "Please perform an DM log switch and restart the connector.");
             }
-            throw new IllegalStateException("None of log files contains offset SCN: " + lastProcessedScn + ", re-snapshot is required.");
+            throw new DebeziumException("None of log files contains offset SCN: " + lastProcessedScn + ", re-snapshot is required.");
         }
 
         List<String> logFilesNames = logFilesForMining.stream().map(LogFile::getFileName).collect(Collectors.toList());
