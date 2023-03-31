@@ -6,10 +6,14 @@
 package io.debezium.connector.dm.logminer.parser;
 
 import io.debezium.DebeziumException;
+import io.debezium.connector.dm.DMValueConverters;
 import io.debezium.connector.dm.logminer.LogMinerHelper;
 import io.debezium.connector.dm.logminer.valueholder.LogMinerDmlEntry;
 import io.debezium.connector.dm.logminer.valueholder.LogMinerDmlEntryImpl;
+import io.debezium.relational.Column;
 import io.debezium.relational.Table;
+
+import oracle.jdbc.OracleTypes;
 
 /**
  * A simple DML parser implementation specifically for DM LogMiner.
@@ -139,6 +143,8 @@ public class LogMinerDmlParser implements DmlParser {
             // that wasn't specified and therefore remained null, correctly adapt the after state
             // accordingly, leaving any field's after value alone if it isn't null or a sentinel.
             for (int i = 0; i < oldValues.length; ++i) {
+                // set unavailable value in the old values if applicable
+                oldValues[i] = getColumnUnavailableValue(oldValues[i], table.columns().get(i));
                 if (newValues[i] == NULL_SENTINEL) {
                     // field is explicitly set to NULL, clear the sentinel and continue
                     newValues[i] = null;
@@ -174,7 +180,11 @@ public class LogMinerDmlParser implements DmlParser {
             // parse where
             Object[] oldValues = new Object[table.columns().size()];
             parseWhereClause(sql, index, oldValues, table);
-
+            // Check and update unavailable column values
+            for (int i = 0; i < oldValues.length; ++i) {
+                // set unavailable value in the old values if applicable
+                oldValues[i] = getColumnUnavailableValue(oldValues[i], table.columns().get(i));
+            }
             return LogMinerDmlEntryImpl.forDelete(oldValues);
         }
         catch (Exception e) {
@@ -639,5 +649,20 @@ public class LogMinerDmlParser implements DmlParser {
             }
         }
         return true;
+    }
+
+    private Object getColumnUnavailableValue(Object value, Column column) {
+        if (value != null) {
+            return value;
+        }
+
+        switch (column.jdbcType()) {
+            case OracleTypes.CLOB:
+            case OracleTypes.NCLOB:
+            case OracleTypes.BLOB:
+                return DMValueConverters.UNAVAILABLE_VALUE;
+            default:
+                return null;
+        }
     }
 }

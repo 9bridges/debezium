@@ -29,6 +29,7 @@ import io.debezium.connector.dm.DMConnectorConfig;
 import io.debezium.connector.dm.DMDatabaseSchema;
 import io.debezium.connector.dm.DMOffsetContext;
 import io.debezium.connector.dm.DMStreamingChangeEventSourceMetrics;
+import io.debezium.connector.dm.DMValueConverters;
 import io.debezium.connector.dm.Scn;
 import io.debezium.connector.dm.logminer.parser.SelectLobParser;
 import io.debezium.connector.dm.logminer.valueholder.LogMinerDmlEntry;
@@ -945,6 +946,9 @@ public final class TransactionalBuffer implements AutoCloseable {
             else if (prevEventIsInsert && "EMPTY_BLOB".equals(prevValue)) {
                 LOGGER.trace("\tAssigning column index {} with updated BLOB value.", i);
                 prevEvent.getEntry().getNewValues()[i] = value;
+            }
+            else if (!prevEventIsInsert && DMValueConverters.UNAVAILABLE_VALUE.equals(value)) {
+                LOGGER.trace("\tSkipped column index {} with unavailable column value.", i);
             }
             else if (!prevEventIsInsert && value != null) {
                 LOGGER.trace("\tUpdating column index {} in previous event", i);
