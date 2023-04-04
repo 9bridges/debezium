@@ -119,7 +119,7 @@ public class DMValueConverters extends JdbcValueConverters {
 
     @Override
     public SchemaBuilder schemaBuilder(Column column) {
-        logger.debug("Building schema for column {} of type {} named {} with constraints ({},{})",
+        logger.info("Building schema for column {} of type {} named {} with constraints ({},{})",
                 column.name(),
                 column.jdbcType(),
                 column.typeName(),

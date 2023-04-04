@@ -319,6 +319,12 @@ public class DMConnection extends JdbcConnection {
                                 .jdbcType(Types.TIMESTAMP)
                                 .create());
             }
+            else if (column.jdbcType() == Types.NUMERIC && column.scale().isPresent() && column.scale().get() == 0) {
+                editor.addColumn(
+                        column.edit()
+                                .scale(null)
+                                .create());
+            }
             // NUMBER columns without scale value have it set to -127 instead of null;
             // let's rectify that
             else if (column.jdbcType() == OracleTypes.NUMBER) {
@@ -404,6 +410,6 @@ public class DMConnection extends JdbcConnection {
     }
 
     private static ConnectionFactory resolveConnectionFactory(Configuration config) {
-        return JdbcConnection.patternBasedFactory(connectionString(config));
+        return JdbcConnection.patternBasedFactory(connectionString(config), "dm.jdbc.driver.DmDriver", null);
     }
 }
