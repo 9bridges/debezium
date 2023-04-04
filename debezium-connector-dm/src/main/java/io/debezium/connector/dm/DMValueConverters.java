@@ -6,6 +6,7 @@
 package io.debezium.connector.dm;
 
 import static io.debezium.util.NumberConversions.BYTE_FALSE;
+import static io.debezium.util.NumberConversions.SHORT_FALSE;
 
 import java.math.BigDecimal;
 import java.sql.Blob;
@@ -389,6 +390,51 @@ public class DMValueConverters extends JdbcValueConverters {
         }
 
         return super.convertDouble(column, fieldDefn, data);
+    }
+
+    @Override
+    protected Object convertReal(Column column, Field fieldDefn, Object data) {
+        return convertValue(column, fieldDefn, data, 0.0f, (r) -> {
+            if (data instanceof Float) {
+                r.deliver(data);
+            }
+            else if (data instanceof Number) {
+                // Includes BigDecimal and other numeric values ...
+                Number value = (Number) data;
+                r.deliver(Float.valueOf(value.floatValue()));
+            }
+            else if (data instanceof Boolean) {
+                r.deliver(NumberConversions.getFloat((Boolean) data));
+            }
+            else if (data instanceof String) {
+                r.deliver(Float.valueOf((String) data));
+            }
+        });
+    }
+
+    @Override
+    protected Object convertSmallInt(Column column, Field fieldDefn, Object data) {
+        return convertValue(column, fieldDefn, data, SHORT_FALSE, (r) -> {
+            if (data instanceof Short) {
+                r.deliver(data);
+            }
+            else if (data instanceof Number) {
+                Number value = (Number) data;
+                r.deliver(Short.valueOf(value.shortValue()));
+            }
+            else if (data instanceof Boolean) {
+                r.deliver(NumberConversions.getShort((Boolean) data));
+            }
+            else if (data instanceof String) {
+                try {
+                    r.deliver(Short.valueOf((String) data));
+                }
+                catch (NumberFormatException e) {
+                    r.deliver((Integer.valueOf((String) data)).shortValue());
+                }
+
+            }
+        });
     }
 
     @Override
