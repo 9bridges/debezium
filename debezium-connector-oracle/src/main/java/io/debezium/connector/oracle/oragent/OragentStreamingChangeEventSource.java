@@ -18,6 +18,7 @@ import io.debezium.pipeline.EventDispatcher;
 import io.debezium.pipeline.source.spi.StreamingChangeEventSource;
 import io.debezium.relational.TableId;
 import io.debezium.util.Clock;
+
 import net.tbsoft.oragentclient.OragentClient;
 
 public class OragentStreamingChangeEventSource implements StreamingChangeEventSource<OracleOffsetContext> {
@@ -30,9 +31,9 @@ public class OragentStreamingChangeEventSource implements StreamingChangeEventSo
     private final OracleStreamingChangeEventSourceMetrics streamingMetrics;
 
     public OragentStreamingChangeEventSource(OracleConnectorConfig connectorConfig, OracleConnection jdbcConnection,
-                                         EventDispatcher<TableId> dispatcher, ErrorHandler errorHandler,
-                                         Clock clock, OracleDatabaseSchema schema,
-                                         OracleStreamingChangeEventSourceMetrics streamingMetrics) {
+                                             EventDispatcher<TableId> dispatcher, ErrorHandler errorHandler,
+                                             Clock clock, OracleDatabaseSchema schema,
+                                             OracleStreamingChangeEventSourceMetrics streamingMetrics) {
         this.connectorConfig = connectorConfig;
         this.jdbcConnection = jdbcConnection;
         this.dispatcher = dispatcher;

@@ -8,10 +8,6 @@ package io.debezium.connector.oracle.oragent;
 import java.sql.SQLException;
 import java.time.Instant;
 
-import net.tbsoft.oragentclient.client.entry.OpCode;
-import net.tbsoft.oragentclient.client.entry.OragentDdlEntry;
-import net.tbsoft.oragentclient.client.entry.OragentDmlEntry;
-import net.tbsoft.oragentclient.client.entry.OragentEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +25,11 @@ import io.debezium.relational.Table;
 import io.debezium.relational.TableId;
 import io.debezium.util.Clock;
 
+import net.tbsoft.oragentclient.client.entry.OpCode;
+import net.tbsoft.oragentclient.client.entry.OragentDdlEntry;
+import net.tbsoft.oragentclient.client.entry.OragentDmlEntry;
+import net.tbsoft.oragentclient.client.entry.OragentEntry;
+
 class OragentEntryEventHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OragentEntryEventHandler.class);
@@ -43,8 +44,8 @@ class OragentEntryEventHandler {
     private final OracleStreamingChangeEventSourceMetrics streamingMetrics;
 
     public OragentEntryEventHandler(OracleConnectorConfig connectorConfig, ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock,
-                                OracleDatabaseSchema schema, OracleOffsetContext offsetContext,
-                                boolean tablenameCaseInsensitive, OracleStreamingChangeEventSourceMetrics streamingMetrics) {
+                                    OracleDatabaseSchema schema, OracleOffsetContext offsetContext,
+                                    boolean tablenameCaseInsensitive, OracleStreamingChangeEventSourceMetrics streamingMetrics) {
         this.connectorConfig = connectorConfig;
         this.errorHandler = errorHandler;
         this.dispatcher = dispatcher;
