@@ -150,6 +150,9 @@ class LogMinerQueryResultProcessor {
                     break;
                 }
                 case RowMapper.ROLLBACK: {
+                    if (rollbackFlag == 0) {
+                        continue;
+                    }
                     // Rollback a transaction
                     if (transactionalBuffer.isTransactionRegistered(txId)) {
                         historyRecorder.record(scn, tableName, segOwner, operationCode, changeTime, txId, 0, redoSql);
