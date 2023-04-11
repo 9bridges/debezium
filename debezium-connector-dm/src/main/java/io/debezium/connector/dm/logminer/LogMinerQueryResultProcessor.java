@@ -10,7 +10,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,6 +167,14 @@ class LogMinerQueryResultProcessor {
                     break;
                 }
                 case RowMapper.DDL: {
+                    if (StringUtils.isEmpty(segOwner)) {
+                        if (redoSql != null && redoSql.contains(".")) {
+                            segOwner = getSegOwnerForRedoSql(redoSql);
+                        }
+                        else {
+                            segOwner = userName;
+                        }
+                    }
                     if (transactionalBuffer.isDdlOperationRegistered(scn)) {
                         LOGGER.trace("DDL: {} has already been seen, skipped.", redoSql);
                         continue;
@@ -172,7 +183,7 @@ class LogMinerQueryResultProcessor {
                     LOGGER.info("DDL: {}, REDO_SQL: {}", logMessage, redoSql);
                     try {
                         if (tableName != null) {
-                            final TableId tableId = RowMapper.getTableId(connectorConfig.getCatalogName(), resultSet);
+                            final TableId tableId = RowMapper.getTableId(connectorConfig.getCatalogName(), segOwner, tableName);
                             transactionalBuffer.registerDdlOperation(scn);
                             dispatcher.dispatchSchemaChangeEvent(tableId,
                                     new DMSchemaChangeEventEmitter(
@@ -268,9 +279,10 @@ class LogMinerQueryResultProcessor {
                             continue;
                         }
 
+                        String finalSegOwner = segOwner;
                         transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
                             final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId);
-                            dmlEntry.setObjectOwner(segOwner);
+                            dmlEntry.setObjectOwner(finalSegOwner);
                             dmlEntry.setObjectName(tableName);
                             return dmlEntry;
                         },
@@ -331,6 +343,24 @@ class LogMinerQueryResultProcessor {
             }
         }
         return table;
+    }
+
+    private String getSegOwnerForRedoSql(String redoSql) {
+        String owner = null;
+        if (!redoSql.contains(".")) {
+            return null;
+        }
+        Optional<String> tn = Arrays.stream(redoSql.split(" ")).filter(s -> s.contains(".")).findFirst();
+        if (tn.isPresent()) {
+            owner = tn.get().split("\\.")[0];
+            if (!owner.startsWith("\"")) {
+                owner = owner.toUpperCase();
+            }
+            else {
+                owner = owner.substring(1, owner.length() - 1);
+            }
+        }
+        return owner;
     }
 
     private Table dispatchSchemaChangeEventAndGetTableForNewCapturedTable(TableId tableId) throws SQLException {
