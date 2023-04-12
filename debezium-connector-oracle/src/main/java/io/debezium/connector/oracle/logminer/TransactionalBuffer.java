@@ -905,7 +905,7 @@ public final class TransactionalBuffer implements AutoCloseable {
      */
     private boolean isSameTableRow(LogMinerEvent event, LogMinerEvent prevEvent) {
         final Table table = schema.tableFor(event.getTableId());
-        if (table == null) {
+        if (table == null || table.primaryKeyColumnNames().isEmpty()) {
             LOGGER.trace("Unable to locate table '{}' schema, unable to detect if same row.", event.getTableId());
             return false;
         }

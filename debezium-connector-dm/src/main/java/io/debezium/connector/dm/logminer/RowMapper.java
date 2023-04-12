@@ -168,6 +168,10 @@ public class RowMapper {
         return new TableId(catalogName, rs.getString(SEG_OWNER), rs.getString(TABLE_NAME));
     }
 
+    public static TableId getTableId(String catalogName, String tableOwner, String tableName) {
+        return new TableId(catalogName, tableOwner, tableName);
+    }
+
     public static Object getRsId(ResultSet rs) throws SQLException {
         return rs.getObject(RS_ID);
     }

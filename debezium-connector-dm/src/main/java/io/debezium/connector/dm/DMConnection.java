@@ -397,7 +397,7 @@ public class DMConnection extends JdbcConnection {
             }
 
             Object res = rs.getObject(1);
-            return ((Clob) res).getSubString(1, (int) ((Clob) res).length());
+            return ((Clob) res).getSubString(1, (int) ((Clob) res).length()).replace("NOT CLUSTER", " ");
         });
     }
 

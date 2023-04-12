@@ -137,7 +137,6 @@ public class LogMinerQueryBuilder {
         final StringBuilder predicate = new StringBuilder(256);
         predicate.append("(OPERATION_CODE = 5 ");
         predicate.append("AND USERNAME NOT IN ('SYS','SYSTEM','").append(userName.toUpperCase()).append("') ");
-        predicate.append("AND INFO NOT LIKE 'INTERNAL DDL%' ");
         predicate.append("AND (TABLE_NAME IS NULL OR TABLE_NAME NOT LIKE 'ORA_TEMP_%'))");
         return predicate.toString();
     }

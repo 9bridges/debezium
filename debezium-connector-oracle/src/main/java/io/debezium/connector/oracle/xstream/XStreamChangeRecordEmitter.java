@@ -7,13 +7,18 @@ package io.debezium.connector.oracle.xstream;
 
 import java.util.Map;
 
+import org.apache.kafka.connect.data.Struct;
+
 import io.debezium.connector.oracle.BaseChangeRecordEmitter;
 import io.debezium.data.Envelope.Operation;
 import io.debezium.pipeline.spi.OffsetContext;
 import io.debezium.relational.Table;
+import io.debezium.relational.TableSchema;
 import io.debezium.util.Clock;
 
 import oracle.streams.ColumnValue;
+import oracle.streams.DDLLCR;
+import oracle.streams.LCR;
 import oracle.streams.RowLCR;
 
 /**
@@ -23,11 +28,11 @@ import oracle.streams.RowLCR;
  */
 public class XStreamChangeRecordEmitter extends BaseChangeRecordEmitter<ColumnValue> {
 
-    private final RowLCR lcr;
+    private final LCR lcr;
     private final Map<String, Object> oldChunkValues;
     private final Map<String, Object> newChunkValues;
 
-    public XStreamChangeRecordEmitter(OffsetContext offset, RowLCR lcr, Map<String, Object> oldChunkValues, Map<String, Object> newChunkValues, Table table,
+    public XStreamChangeRecordEmitter(OffsetContext offset, LCR lcr, Map<String, Object> oldChunkValues, Map<String, Object> newChunkValues, Table table,
                                       Clock clock) {
         super(offset, table, clock);
         this.lcr = lcr;
@@ -37,6 +42,9 @@ public class XStreamChangeRecordEmitter extends BaseChangeRecordEmitter<ColumnVa
 
     @Override
     protected Operation getOperation() {
+        if (lcr instanceof DDLLCR) {
+            return Operation.TRUNCATE;
+        }
         switch (lcr.getCommandType()) {
             case RowLCR.INSERT:
                 return Operation.CREATE;
@@ -51,12 +59,12 @@ public class XStreamChangeRecordEmitter extends BaseChangeRecordEmitter<ColumnVa
 
     @Override
     protected Object[] getOldColumnValues() {
-        return getColumnValues(lcr.getOldValues(), oldChunkValues);
+        return getColumnValues(((RowLCR) lcr).getOldValues(), oldChunkValues);
     }
 
     @Override
     protected Object[] getNewColumnValues() {
-        return getColumnValues(lcr.getNewValues(), newChunkValues);
+        return getColumnValues(((RowLCR) lcr).getNewValues(), newChunkValues);
     }
 
     private Object[] getColumnValues(ColumnValue[] columnValues, Map<String, Object> chunkValues) {
@@ -75,4 +83,9 @@ public class XStreamChangeRecordEmitter extends BaseChangeRecordEmitter<ColumnVa
         return values;
     }
 
+    @Override
+    protected void emitTruncateRecord(Receiver receiver, TableSchema tableSchema) throws InterruptedException {
+        Struct envelope = tableSchema.getEnvelopeSchema().truncate(getOffset().getSourceInfo(), getClock().currentTimeAsInstant());
+        receiver.changeRecord(tableSchema, Operation.TRUNCATE, null, envelope, getOffset(), null);
+    }
 }

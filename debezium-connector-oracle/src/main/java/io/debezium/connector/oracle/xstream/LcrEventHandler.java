@@ -218,19 +218,25 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
         }
 
         TableId tableId = getTableId(ddlLcr);
-
-        dispatcher.dispatchSchemaChangeEvent(
-                tableId,
-                new OracleSchemaChangeEventEmitter(
-                        connectorConfig,
-                        offsetContext,
-                        tableId,
-                        ddlLcr.getSourceDatabaseName(),
-                        ddlLcr.getObjectOwner(),
-                        ddlLcr.getDDLText(),
-                        schema,
-                        ddlLcr.getSourceTime().timestampValue().toInstant(),
-                        streamingMetrics));
+        if (isTruncate(ddlLcr.getDDLText())) {
+            dispatcher.dispatchDataChangeEvent(
+                    tableId,
+                    new XStreamChangeRecordEmitter(offsetContext, ddlLcr, null, null, schema.tableFor(tableId), clock));
+        }
+        else {
+            dispatcher.dispatchSchemaChangeEvent(
+                    tableId,
+                    new OracleSchemaChangeEventEmitter(
+                            connectorConfig,
+                            offsetContext,
+                            tableId,
+                            ddlLcr.getSourceDatabaseName(),
+                            ddlLcr.getObjectOwner(),
+                            ddlLcr.getDDLText(),
+                            schema,
+                            ddlLcr.getSourceTime().timestampValue().toInstant(),
+                            streamingMetrics));
+        }
     }
 
     private TableId getTableId(LCR lcr) {
@@ -240,6 +246,10 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
         else {
             return new TableId(lcr.getSourceDatabaseName(), lcr.getObjectOwner(), lcr.getObjectName().toLowerCase());
         }
+    }
+
+    private boolean isTruncate(String sql) {
+        return sql != null && (sql.startsWith("truncate") || sql.startsWith("TRUNCATE"));
     }
 
     private String getTableMetadataDdl(TableId tableId) {
