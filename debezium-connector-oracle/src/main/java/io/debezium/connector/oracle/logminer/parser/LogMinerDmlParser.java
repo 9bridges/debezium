@@ -77,9 +77,26 @@ public class LogMinerDmlParser implements DmlParser {
                     return parseUpdate(sql, table);
                 case 'd':
                     return parseDelete(sql, table);
+                case 'T':
+                case 't':
+                    return parseTruncate(sql, table);
             }
         }
         throw new DmlParserException("Unknown supported SQL '" + sql + "'");
+    }
+
+    private LogMinerDmlEntry parseTruncate(String sql, Table table) {
+        try {
+
+            // parse where
+            Object[] newValues = new Object[2];
+            newValues[0] = "LogminerDDL";
+            newValues[1] = sql;
+            return LogMinerDmlEntryImpl.forDDL(newValues);
+        }
+        catch (Exception e) {
+            throw new DmlParserException("Failed to parse delete DML: '" + sql + "'", e);
+        }
     }
 
     /**

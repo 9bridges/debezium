@@ -5,12 +5,15 @@
  */
 package io.debezium.connector.oracle.logminer;
 
+import org.apache.kafka.connect.data.Struct;
+
 import io.debezium.DebeziumException;
 import io.debezium.connector.oracle.BaseChangeRecordEmitter;
 import io.debezium.connector.oracle.logminer.valueholder.LogMinerDmlEntry;
 import io.debezium.data.Envelope.Operation;
 import io.debezium.pipeline.spi.OffsetContext;
 import io.debezium.relational.Table;
+import io.debezium.relational.TableSchema;
 import io.debezium.util.Clock;
 
 /**
@@ -40,6 +43,8 @@ public class LogMinerChangeRecordEmitter extends BaseChangeRecordEmitter<Object>
                 return Operation.UPDATE;
             case RowMapper.DELETE:
                 return Operation.DELETE;
+            case RowMapper.DDL:
+                return Operation.TRUNCATE;
             default:
                 throw new DebeziumException("Unsupported operation type: " + operation);
         }
@@ -53,5 +58,11 @@ public class LogMinerChangeRecordEmitter extends BaseChangeRecordEmitter<Object>
     @Override
     protected Object[] getNewColumnValues() {
         return newValues;
+    }
+
+    @Override
+    protected void emitTruncateRecord(Receiver receiver, TableSchema tableSchema) throws InterruptedException {
+        Struct envelope = tableSchema.getEnvelopeSchema().truncate(getOffset().getSourceInfo(), getClock().currentTimeAsInstant());
+        receiver.changeRecord(tableSchema, Operation.TRUNCATE, null, envelope, getOffset(), null);
     }
 }
