@@ -46,6 +46,10 @@ public class LogMinerDmlEntryImpl implements LogMinerDmlEntry {
         return new LogMinerDmlEntryImpl(RowMapper.SELECT_LOB_LOCATOR, newColumnValues, oldColumnValues);
     }
 
+    public static LogMinerDmlEntry forDDL(Object[] newColumnValues) {
+        return new LogMinerDmlEntryImpl(RowMapper.DDL, newColumnValues, new Object[0]);
+    }
+
     @Override
     public int getOperation() {
         return operation;

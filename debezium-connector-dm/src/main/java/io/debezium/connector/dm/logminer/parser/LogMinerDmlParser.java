@@ -81,6 +81,9 @@ public class LogMinerDmlParser implements DmlParser {
                     return parseUpdate(sql, table);
                 case 'D':
                     return parseDelete(sql, table);
+                case 'T':
+                case 't':
+                    return parseTruncate(sql, table);
             }
         }
         throw new DmlParserException("Unknown supported SQL '" + sql + "'");
@@ -186,6 +189,20 @@ public class LogMinerDmlParser implements DmlParser {
                 oldValues[i] = getColumnUnavailableValue(oldValues[i], table.columns().get(i));
             }
             return LogMinerDmlEntryImpl.forDelete(oldValues);
+        }
+        catch (Exception e) {
+            throw new DmlParserException("Failed to parse delete DML: '" + sql + "'", e);
+        }
+    }
+
+    private LogMinerDmlEntry parseTruncate(String sql, Table table) {
+        try {
+
+            // parse where
+            Object[] newValues = new Object[2];
+            newValues[0] = "LogminerDDL";
+            newValues[1] = sql;
+            return LogMinerDmlEntryImpl.forDDL(newValues);
         }
         catch (Exception e) {
             throw new DmlParserException("Failed to parse delete DML: '" + sql + "'", e);

@@ -188,18 +188,31 @@ class LogMinerQueryResultProcessor {
                     try {
                         if (tableName != null) {
                             final TableId tableId = RowMapper.getTableId(connectorConfig.getCatalogName(), segOwner, tableName);
-                            transactionalBuffer.registerDdlOperation(scn);
-                            dispatcher.dispatchSchemaChangeEvent(tableId,
-                                    new DMSchemaChangeEventEmitter(
-                                            connectorConfig,
-                                            offsetContext,
-                                            tableId,
-                                            tableId.catalog(),
-                                            tableId.schema(),
-                                            redoSql,
-                                            schema,
-                                            changeTime.toInstant(),
-                                            streamingMetrics));
+                            if (isTruncate(redoSql)) {
+                                final Table table = getTableForDmlEvent(tableId);
+                                String finalSegOwner = segOwner;
+                                transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
+                                    final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId);
+                                    dmlEntry.setObjectOwner(finalSegOwner);
+                                    dmlEntry.setObjectName(tableName);
+                                    return dmlEntry;
+                                },
+                                        changeTime.toInstant(), rowId, rsId);
+                            }
+                            else {
+                                transactionalBuffer.registerDdlOperation(scn);
+                                dispatcher.dispatchSchemaChangeEvent(tableId,
+                                        new DMSchemaChangeEventEmitter(
+                                                connectorConfig,
+                                                offsetContext,
+                                                tableId,
+                                                tableId.catalog(),
+                                                tableId.schema(),
+                                                redoSql,
+                                                schema,
+                                                changeTime.toInstant(),
+                                                streamingMetrics));
+                            }
                         }
                     }
                     catch (InterruptedException e) {
@@ -453,6 +466,10 @@ class LogMinerQueryResultProcessor {
         }
 
         return dmlEntry;
+    }
+
+    private boolean isTruncate(String sql) {
+        return sql != null && (sql.startsWith("truncate") || sql.startsWith("TRUNCATE"));
     }
 
     private static boolean isDmlOperation(int operationCode) {
