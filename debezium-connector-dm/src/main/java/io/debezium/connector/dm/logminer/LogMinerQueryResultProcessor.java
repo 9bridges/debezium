@@ -179,6 +179,10 @@ class LogMinerQueryResultProcessor {
                         LOGGER.trace("DDL: {} has already been seen, skipped.", redoSql);
                         continue;
                     }
+                    if (rollbackFlag == 1) {
+                        LOGGER.info("ROLLBACK DDL: {}, REDO_SQL: {}", logMessage, redoSql);
+                        continue;
+                    }
                     historyRecorder.record(scn, tableName, segOwner, operationCode, changeTime, txId, 0, redoSql);
                     LOGGER.info("DDL: {}, REDO_SQL: {}", logMessage, redoSql);
                     try {
