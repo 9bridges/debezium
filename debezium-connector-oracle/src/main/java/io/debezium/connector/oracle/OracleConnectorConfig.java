@@ -669,7 +669,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
         XSTREAM("XStream") {
             @Override
             public String getConnectionUrl() {
-                return "jdbc:oracle:oci:@${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
+                return "jdbc:oracle:oci:@//${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
             }
 
             @Override
@@ -684,7 +684,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
         ORAGENT("oragent") {
             @Override
             public String getConnectionUrl() {
-                return "jdbc:oracle:oci:@${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
+                return "jdbc:oracle:oci:@//${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
             }
 
             @Override
@@ -702,7 +702,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
         LOG_MINER("LogMiner") {
             @Override
             public String getConnectionUrl() {
-                return "jdbc:oracle:thin:@${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
+                return "jdbc:oracle:thin:@//${" + JdbcConfiguration.HOSTNAME + "}:${" + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
             }
 
             @Override
