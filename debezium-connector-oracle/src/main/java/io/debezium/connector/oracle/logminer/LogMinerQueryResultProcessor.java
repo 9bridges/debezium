@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +93,7 @@ class LogMinerQueryResultProcessor {
      * @param resultSet the info from LogMiner view
      * @throws SQLException thrown if any database exception occurs
      */
-    void processResult(ResultSet resultSet) throws SQLException {
+    void processResult(ResultSet resultSet, ZoneOffset zoneOffset) throws SQLException {
         int dmlCounter = 0, insertCounter = 0, updateCounter = 0, deleteCounter = 0;
         int commitCounter = 0;
         int rollbackCounter = 0;
@@ -109,7 +110,7 @@ class LogMinerQueryResultProcessor {
             String tableName = RowMapper.getTableName(resultSet);
             String segOwner = RowMapper.getSegOwner(resultSet);
             int operationCode = RowMapper.getOperationCode(resultSet);
-            Timestamp changeTime = RowMapper.getChangeTime(resultSet);
+            Timestamp changeTime = RowMapper.getChangeTime(resultSet, zoneOffset);
             String txId = RowMapper.getTransactionId(resultSet);
             String operation = RowMapper.getOperation(resultSet);
             String userName = RowMapper.getUsername(resultSet);

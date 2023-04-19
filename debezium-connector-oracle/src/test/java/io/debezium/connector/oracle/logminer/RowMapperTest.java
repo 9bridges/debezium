@@ -17,6 +17,7 @@ import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Calendar;
 
@@ -51,11 +52,11 @@ public class RowMapperTest {
     @Test
     public void testChangeTime() throws SQLException {
         Mockito.when(rs.getTimestamp(eq(4), any(Calendar.class))).thenReturn(new Timestamp(1000L));
-        Timestamp time = RowMapper.getChangeTime(rs);
+        Timestamp time = RowMapper.getChangeTime(rs, ZoneOffset.of("0000"));
         assertThat(time.getTime()).isEqualTo(1000L);
         Mockito.when(rs.getTimestamp(eq(4), any(Calendar.class))).thenThrow(SQLException.class);
         try {
-            time = RowMapper.getChangeTime(rs);
+            time = RowMapper.getChangeTime(rs, ZoneOffset.of("0000"));
             fail("Should have thrown a SQLException");
         }
         catch (SQLException e) {
