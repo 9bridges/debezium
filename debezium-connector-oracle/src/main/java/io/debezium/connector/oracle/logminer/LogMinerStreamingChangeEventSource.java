@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -79,6 +80,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
     private final Duration archiveLogRetention;
     private final boolean archiveLogOnlyMode;
     private final String archiveDestinationName;
+    private ZoneOffset zoneOffset;
 
     private Scn startScn;
     private Scn endScn;
@@ -128,7 +130,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
 
                 setNlsSessionParameters(jdbcConnection);
                 checkSupplementalLogging(jdbcConnection, connectorConfig.getPdbName(), schema);
-
+                zoneOffset = getSystime(jdbcConnection).getOffset();
                 if (archiveLogOnlyMode && !waitForStartScnInArchiveLogs(context, startScn)) {
                     return;
                 }
@@ -201,7 +203,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                             try (ResultSet rs = miningView.executeQuery()) {
                                 Duration lastDurationOfBatchCapturing = stopwatch.stop().durations().statistics().getTotal();
                                 streamingMetrics.setLastDurationOfBatchCapturing(lastDurationOfBatchCapturing);
-                                processor.processResult(rs);
+                                processor.processResult(rs, zoneOffset);
                                 if (connectorConfig.isLobEnabled()) {
                                     startScn = transactionalBuffer.updateOffsetContext(offsetContext, dispatcher);
                                 }

@@ -6,6 +6,7 @@
 package io.debezium.connector.oracle.xstream;
 
 import java.sql.SQLException;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -53,6 +54,7 @@ public class XstreamStreamingChangeEventSource implements StreamingChangeEventSo
     private final String xStreamServerName;
     private volatile XStreamOut xsOut;
     private final int posVersion;
+    private ZoneOffset zoneOffset;
     /**
      * A message box between thread that is informed about committed offsets and the XStream thread.
      * When the last offset is committed its value is passed to the XStream thread and a watermark is
@@ -154,6 +156,13 @@ public class XstreamStreamingChangeEventSource implements StreamingChangeEventSo
             this.position = position;
             this.scn = scn;
         }
+    }
+
+    public ZoneOffset getZoneOffset() throws SQLException {
+        if (zoneOffset == null) {
+            zoneOffset = jdbcConnection.getSystime().getOffset();
+        }
+        return zoneOffset;
     }
 
     XStreamOut getXsOut() {

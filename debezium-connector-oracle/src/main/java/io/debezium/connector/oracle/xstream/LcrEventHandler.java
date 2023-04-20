@@ -7,9 +7,12 @@ package io.debezium.connector.oracle.xstream;
 
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +62,8 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
     private final OracleStreamingChangeEventSourceMetrics streamingMetrics;
     private final Map<String, ChunkColumnValues> columnChunks;
     private RowLCR currentRow;
+    private Calendar calendar;
+    private static final Calendar UTC_CALENDAR = Calendar.getInstance(TimeZone.getTimeZone(ZoneOffset.UTC));
 
     public LcrEventHandler(OracleConnectorConfig connectorConfig, ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock,
                            OracleDatabaseSchema schema, OracleOffsetContext offsetContext, boolean tablenameCaseInsensitive,
@@ -73,6 +78,12 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
         this.eventSource = eventSource;
         this.streamingMetrics = streamingMetrics;
         this.columnChunks = new LinkedHashMap<>();
+        try {
+            calendar = Calendar.getInstance(TimeZone.getTimeZone(eventSource.getZoneOffset()));
+        }
+        catch (SQLException e) {
+            calendar = UTC_CALENDAR;
+        }
     }
 
     @Override
@@ -102,7 +113,8 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
         offsetContext.setScn(lcrPosition.getScn());
         offsetContext.setLcrPosition(lcrPosition.toString());
         offsetContext.setTransactionId(lcr.getTransactionId());
-        offsetContext.tableEvent(new TableId(lcr.getSourceDatabaseName(), lcr.getObjectOwner(), lcr.getObjectName()), lcr.getSourceTime().timestampValue().toInstant());
+        offsetContext.tableEvent(new TableId(lcr.getSourceDatabaseName(), lcr.getObjectOwner(), lcr.getObjectName()),
+                lcr.getSourceTime().timestampValue(calendar).toInstant());
 
         try {
             if (lcr instanceof RowLCR) {

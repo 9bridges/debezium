@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -75,7 +76,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
     private final Duration archiveLogRetention;
     private final boolean archiveLogOnlyMode;
     private final String archiveDestinationName;
-
+    private ZoneOffset zoneOffset;
     private Scn startScn;
     private Scn endScn;
     private List<BigInteger> currentArchivedLogSequences;
@@ -115,7 +116,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
             try {
                 startScn = offsetContext.getScn();
                 createFlushTable(jdbcConnection);
-
+                zoneOffset = getSystime(jdbcConnection).getOffset();
                 /*
                  * if (!isContinuousMining && startScn.compareTo(getFirstOnlineLogScn(jdbcConnection, archiveLogRetention, archiveDestinationName)) < 0) {
                  * throw new DebeziumException(
@@ -203,7 +204,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                             try (ResultSet rs = miningView.executeQuery()) {
                                 Duration lastDurationOfBatchCapturing = stopwatch.stop().durations().statistics().getTotal();
                                 streamingMetrics.setLastDurationOfBatchCapturing(lastDurationOfBatchCapturing);
-                                processor.processResult(rs);
+                                processor.processResult(rs, zoneOffset);
                                 if (connectorConfig.isLobEnabled()) {
                                     startScn = scnbk;
                                     transactionalBuffer.updateOffsetContext(offsetContext, dispatcher);

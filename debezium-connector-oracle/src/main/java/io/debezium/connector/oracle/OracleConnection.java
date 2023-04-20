@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -376,6 +377,17 @@ public class OracleConnection extends JdbcConnection {
                 return Scn.valueOf(rs.getString(1)).subtract(Scn.valueOf(1));
             }
             throw new DebeziumException("Could not obtain maximum archive log scn.");
+        });
+    }
+
+    public OffsetDateTime getSystime() throws SQLException {
+        return queryAndMap("SELECT SYSTIMESTAMP FROM DUAL", rs -> {
+            if (rs.next()) {
+                return rs.getObject(1, OffsetDateTime.class);
+            }
+            else {
+                return null;
+            }
         });
     }
 
