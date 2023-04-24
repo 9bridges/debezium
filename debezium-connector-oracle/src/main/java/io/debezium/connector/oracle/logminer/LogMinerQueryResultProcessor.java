@@ -173,7 +173,7 @@ class LogMinerQueryResultProcessor {
                             if (isTruncate(redoSql)) {
                                 final Table table = getTableForDmlEvent(tableId);
                                 transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
-                                    final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId);
+                                    final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId, rowId);
                                     dmlEntry.setObjectOwner(segOwner);
                                     dmlEntry.setObjectName(tableName);
                                     return dmlEntry;
@@ -278,7 +278,7 @@ class LogMinerQueryResultProcessor {
                         }
 
                         transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
-                            final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId);
+                            final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId, rowId);
                             dmlEntry.setObjectOwner(segOwner);
                             dmlEntry.setObjectName(tableName);
                             return dmlEntry;
@@ -403,11 +403,11 @@ class LogMinerQueryResultProcessor {
         }
     }
 
-    private LogMinerDmlEntry parse(String redoSql, Table table, String txId) {
+    private LogMinerDmlEntry parse(String redoSql, Table table, String txId, String rowid) {
         LogMinerDmlEntry dmlEntry;
         try {
             Instant parseStart = Instant.now();
-            dmlEntry = dmlParser.parse(redoSql, table, txId);
+            dmlEntry = dmlParser.parse(redoSql, table, txId, rowid);
             streamingMetrics.addCurrentParseTime(Duration.between(parseStart, Instant.now()));
         }
         catch (DmlParserException e) {

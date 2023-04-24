@@ -219,6 +219,12 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
                 }
             }
         }
+
+        if (table.primaryKeyColumnNames().contains("ROWID")) {
+            oldChunkValues.put("ROWID", lcr.getAttribute("ROW_ID"));
+            chunkValues.put("ROWID", lcr.getAttribute("ROW_ID"));
+        }
+
         dispatcher.dispatchDataChangeEvent(
                 tableId,
                 new XStreamChangeRecordEmitter(offsetContext, lcr, oldChunkValues, chunkValues, schema.tableFor(tableId), clock));
