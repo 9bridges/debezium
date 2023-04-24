@@ -23,5 +23,5 @@ public interface DmlParser {
      * @return the parsed sql as a DML entry or {@code null} if the SQL couldn't be parsed.
      * @throws DmlParserException thrown if a parse exception is detected.
      */
-    LogMinerDmlEntry parse(String sql, Table table, String txId);
+    LogMinerDmlEntry parse(String sql, Table table, String txId, String rowid);
 }
