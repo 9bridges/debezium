@@ -7,6 +7,9 @@ package io.debezium.connector.oracle.oragent;
 
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +45,12 @@ class OragentEntryEventHandler {
     private final OracleOffsetContext offsetContext;
     private final boolean tablenameCaseInsensitive;
     private final OracleStreamingChangeEventSourceMetrics streamingMetrics;
+    private Calendar calendar;
+    private static final Calendar UTC_CALENDAR = Calendar.getInstance(TimeZone.getTimeZone(ZoneOffset.UTC));
 
     public OragentEntryEventHandler(OracleConnectorConfig connectorConfig, ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock,
                                     OracleDatabaseSchema schema, OracleOffsetContext offsetContext,
-                                    boolean tablenameCaseInsensitive, OracleStreamingChangeEventSourceMetrics streamingMetrics) {
+                                    boolean tablenameCaseInsensitive, OracleStreamingChangeEventSourceMetrics streamingMetrics, OragentStreamingChangeEventSource eventSource) {
         this.connectorConfig = connectorConfig;
         this.errorHandler = errorHandler;
         this.dispatcher = dispatcher;
@@ -54,7 +59,24 @@ class OragentEntryEventHandler {
         this.offsetContext = offsetContext;
         this.tablenameCaseInsensitive = tablenameCaseInsensitive;
         this.streamingMetrics = streamingMetrics;
+        try {
+            calendar = Calendar.getInstance(TimeZone.getTimeZone(eventSource.getZoneOffset()));
+        } catch (SQLException e) {
+            calendar = UTC_CALENDAR;
+        }
     }
+
+    private Instant scnTimeToInstant(int scnTime) {
+        int iyear = scnTime / 32140800 + 1988;
+        int imonth = (scnTime / 2678400) % 12;
+        int iday = (scnTime / 86400) % 31 + 1;
+        int ihour = (scnTime / 3600) % 24;
+        int iminute = (scnTime / 60) % 60;
+        int isecond = scnTime % 60;
+        UTC_CALENDAR.set(iyear, imonth, iday, ihour, iminute, isecond);
+        return UTC_CALENDAR.getTime().toInstant();
+    }
+
 
     public void processOragentEntry(OragentEntry oragentEntry) {
         LOGGER.trace("Received LCR {}", oragentEntry.getEventType());
@@ -68,27 +90,24 @@ class OragentEntryEventHandler {
                 LOGGER.debug("Ignoring change event with already processed SCN {}, last SCN {}",
                         oragentEntryScn, offsetScn);
             }
-            /* return; */
+            return;
         }
 
         offsetContext.setScn(Scn.valueOf(oragentEntry.getScn()));
         offsetContext.setTransactionId(oragentEntry.getTransactionId());
         offsetContext.tableEvent(new TableId(oragentEntry.getDatabaseName(), oragentEntry.getObjectOwner(), oragentEntry.getObjectName()),
-                oragentEntry.getSourceTime());
+                scnTimeToInstant((int) oragentEntry.getSourceTime()));
         try {
             if (oragentEntry instanceof OragentDmlEntry) {
                 LOGGER.trace("Received DML LCR {}", oragentEntry);
                 processDmlEntry((OragentDmlEntry) oragentEntry);
-            }
-            else if (oragentEntry instanceof OragentDdlEntry) {
+            } else if (oragentEntry instanceof OragentDdlEntry) {
                 dispatchSchemaChangeEvent((OragentDdlEntry) oragentEntry);
             }
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.interrupted();
             LOGGER.info("Received signal to stop, event loop will halt");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             errorHandler.setProducerThrowable(e);
         }
     }
@@ -146,15 +165,14 @@ class OragentEntryEventHandler {
                         ddlLcr.getObjectOwner(),
                         ddlLcr.getDDLString(),
                         schema,
-                        ddlLcr.getSourceTime(),
+                        scnTimeToInstant((int) ddlLcr.getSourceTime()),
                         streamingMetrics));
     }
 
     private TableId getTableId(OragentEntry oragentEntry) {
         if (!this.tablenameCaseInsensitive) {
             return new TableId(connectorConfig.getCatalogName(), oragentEntry.getObjectOwner(), oragentEntry.getObjectName());
-        }
-        else {
+        } else {
             return new TableId(connectorConfig.getCatalogName(), oragentEntry.getObjectOwner(), oragentEntry.getObjectName().toLowerCase());
         }
     }
@@ -168,8 +186,7 @@ class OragentEntryEventHandler {
                 connection.setSessionToPdb(pdbName);
             }
             return connection.getTableMetadataDdl(tableId);
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             throw new DebeziumException("Failed to get table DDL metadata for: " + tableId, e);
         }
     }
