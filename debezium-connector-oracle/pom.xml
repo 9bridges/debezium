@@ -15,7 +15,7 @@
         <dependency>
             <groupId>io.github.tb-soft</groupId>
             <artifactId>oragent-client</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.debezium</groupId>

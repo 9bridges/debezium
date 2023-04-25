@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.oracle.oragent;
 
+import java.sql.SQLException;
+import java.time.ZoneOffset;
 import java.util.Map;
 
 import io.debezium.connector.oracle.OracleConnection;
@@ -29,6 +31,7 @@ public class OragentStreamingChangeEventSource implements StreamingChangeEventSo
     private final Clock clock;
     private final OracleDatabaseSchema schema;
     private final OracleStreamingChangeEventSourceMetrics streamingMetrics;
+    private ZoneOffset zoneOffset;
 
     public OragentStreamingChangeEventSource(OracleConnectorConfig connectorConfig, OracleConnection jdbcConnection,
                                              EventDispatcher<TableId> dispatcher, ErrorHandler errorHandler,
@@ -49,7 +52,7 @@ public class OragentStreamingChangeEventSource implements StreamingChangeEventSo
         OragentEntryEventHandler eventHandler = new OragentEntryEventHandler(connectorConfig, errorHandler, dispatcher, clock, schema,
                 offsetContext,
                 TableNameCaseSensitivity.INSENSITIVE.equals(connectorConfig.getAdapter().getTableNameCaseSensitivity(jdbcConnection)),
-                streamingMetrics);
+                streamingMetrics, this);
         OragentClient oragentClient = new OragentClient(connectorConfig.getOragentServerPort());
         oragentClient.setListener(eventHandler::processOragentEntry);
 
@@ -58,6 +61,13 @@ public class OragentStreamingChangeEventSource implements StreamingChangeEventSo
             Thread.sleep(5000);
         }
         oragentClient.stop();
+    }
+
+    public ZoneOffset getZoneOffset() throws SQLException {
+        if (zoneOffset == null) {
+            zoneOffset = jdbcConnection.getSystime().getOffset();
+        }
+        return zoneOffset;
     }
 
     @Override
