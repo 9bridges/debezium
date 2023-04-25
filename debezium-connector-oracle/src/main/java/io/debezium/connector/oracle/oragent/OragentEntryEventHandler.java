@@ -50,7 +50,8 @@ class OragentEntryEventHandler {
 
     public OragentEntryEventHandler(OracleConnectorConfig connectorConfig, ErrorHandler errorHandler, EventDispatcher<TableId> dispatcher, Clock clock,
                                     OracleDatabaseSchema schema, OracleOffsetContext offsetContext,
-                                    boolean tablenameCaseInsensitive, OracleStreamingChangeEventSourceMetrics streamingMetrics, OragentStreamingChangeEventSource eventSource) {
+                                    boolean tablenameCaseInsensitive, OracleStreamingChangeEventSourceMetrics streamingMetrics,
+                                    OragentStreamingChangeEventSource eventSource) {
         this.connectorConfig = connectorConfig;
         this.errorHandler = errorHandler;
         this.dispatcher = dispatcher;
@@ -61,7 +62,8 @@ class OragentEntryEventHandler {
         this.streamingMetrics = streamingMetrics;
         try {
             calendar = Calendar.getInstance(TimeZone.getTimeZone(eventSource.getZoneOffset()));
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             calendar = UTC_CALENDAR;
         }
     }
@@ -76,7 +78,6 @@ class OragentEntryEventHandler {
         UTC_CALENDAR.set(iyear, imonth, iday, ihour, iminute, isecond);
         return UTC_CALENDAR.getTime().toInstant();
     }
-
 
     public void processOragentEntry(OragentEntry oragentEntry) {
         LOGGER.trace("Received LCR {}", oragentEntry.getEventType());
@@ -101,13 +102,16 @@ class OragentEntryEventHandler {
             if (oragentEntry instanceof OragentDmlEntry) {
                 LOGGER.trace("Received DML LCR {}", oragentEntry);
                 processDmlEntry((OragentDmlEntry) oragentEntry);
-            } else if (oragentEntry instanceof OragentDdlEntry) {
+            }
+            else if (oragentEntry instanceof OragentDdlEntry) {
                 dispatchSchemaChangeEvent((OragentDdlEntry) oragentEntry);
             }
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             Thread.interrupted();
             LOGGER.info("Received signal to stop, event loop will halt");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             errorHandler.setProducerThrowable(e);
         }
     }
@@ -172,7 +176,8 @@ class OragentEntryEventHandler {
     private TableId getTableId(OragentEntry oragentEntry) {
         if (!this.tablenameCaseInsensitive) {
             return new TableId(connectorConfig.getCatalogName(), oragentEntry.getObjectOwner(), oragentEntry.getObjectName());
-        } else {
+        }
+        else {
             return new TableId(connectorConfig.getCatalogName(), oragentEntry.getObjectOwner(), oragentEntry.getObjectName().toLowerCase());
         }
     }
@@ -186,7 +191,8 @@ class OragentEntryEventHandler {
                 connection.setSessionToPdb(pdbName);
             }
             return connection.getTableMetadataDdl(tableId);
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new DebeziumException("Failed to get table DDL metadata for: " + tableId, e);
         }
     }

@@ -32,6 +32,7 @@ public class OragentStreamingChangeEventSource implements StreamingChangeEventSo
     private final OracleDatabaseSchema schema;
     private final OracleStreamingChangeEventSourceMetrics streamingMetrics;
     private ZoneOffset zoneOffset;
+
     public OragentStreamingChangeEventSource(OracleConnectorConfig connectorConfig, OracleConnection jdbcConnection,
                                              EventDispatcher<TableId> dispatcher, ErrorHandler errorHandler,
                                              Clock clock, OracleDatabaseSchema schema,
