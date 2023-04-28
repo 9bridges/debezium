@@ -11,6 +11,8 @@ import io.debezium.connector.oracle.logminer.valueholder.LogMinerDmlEntry;
 import io.debezium.connector.oracle.logminer.valueholder.LogMinerDmlEntryImpl;
 import io.debezium.relational.Table;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 /**
  * A simple DML parser implementation specifically for Oracle LogMiner.
  *
@@ -88,7 +90,7 @@ public class LogMinerDmlParser implements DmlParser {
     }
 
     private void dispatchRowid(Table table, Object[] values) {
-        if (table.primaryKeyColumnNames().contains("ROWID")) {
+        if (table.primaryKeyColumnNames().contains(GENERATED_PK_NAME)) {
             values[values.length - 1] = rowid;
         }
     }

@@ -44,6 +44,8 @@ import io.debezium.util.Strings;
 
 import oracle.jdbc.OracleTypes;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 public class OracleConnection extends JdbcConnection {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(OracleConnection.class);
@@ -302,7 +304,7 @@ public class OracleConnection extends JdbcConnection {
 
     protected Column createRowidColumn(int position) throws SQLException {
 
-        final String columnName = "ROWID";
+        final String columnName = GENERATED_PK_NAME;
         final ColumnEditor column = Column.editor().name(columnName);
         column.type("ROWID");
         column.length(19);
@@ -346,7 +348,7 @@ public class OracleConnection extends JdbcConnection {
             if (!editor.hasPrimaryKey()) {
                 int generatedColumnId = columnNames.size() + 1;
                 editor.addColumn(createRowidColumn(generatedColumnId));
-                editor.setPrimaryKeyNames("ROWID");
+                editor.setPrimaryKeyNames(GENERATED_PK_NAME);
             }
         }
         catch (SQLException e) {

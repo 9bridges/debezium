@@ -42,6 +42,8 @@ import oracle.streams.StreamsException;
 import oracle.streams.XStreamLCRCallbackHandler;
 import oracle.streams.XStreamOut;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 /**
  * Handler for Oracle DDL and DML events. Just forwards events to the {@link EventDispatcher}.
  *
@@ -220,9 +222,9 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
             }
         }
 
-        if (table.primaryKeyColumnNames().contains("ROWID")) {
-            oldChunkValues.put("ROWID", lcr.getAttribute("ROW_ID"));
-            chunkValues.put("ROWID", lcr.getAttribute("ROW_ID"));
+        if (table.primaryKeyColumnNames().contains(GENERATED_PK_NAME)) {
+            oldChunkValues.put(GENERATED_PK_NAME, lcr.getAttribute("ROW_ID"));
+            chunkValues.put(GENERATED_PK_NAME, lcr.getAttribute("ROW_ID"));
         }
 
         dispatcher.dispatchDataChangeEvent(

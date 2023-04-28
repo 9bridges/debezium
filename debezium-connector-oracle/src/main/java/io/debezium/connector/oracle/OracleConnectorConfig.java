@@ -61,6 +61,8 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
 
     protected final static Duration ARCHIVE_LOG_ONLY_POLL_TIME = Duration.ofMillis(10_000);
     protected final static int DEFAULT_ORAGENT_SERVER_PORT = 8303;
+
+    public static final String GENERATED_PK_NAME = "__SYNJQ_PK_COLUMN";
     public static final Field PORT = RelationalDatabaseConnectorConfig.PORT
             .withDefault(DEFAULT_PORT);
 
