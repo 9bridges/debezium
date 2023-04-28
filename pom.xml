@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.debezium</groupId>
     <artifactId>debezium-build-parent</artifactId>
-    <version>1.6.4.jq-1.3-SNAPSHOT</version>
+    <version>1.6.4.jq-1.4-SNAPSHOT</version>
     <name>Debezium Build Aggregator</name>
     <description>Debezium is an open source change data capture platform</description>
     <packaging>pom</packaging>
@@ -144,12 +144,12 @@
         <repository>
             <id>nexus3</id>
             <name>releases</name>
-            <url>http://43.140.210.213:1721/repository/maven-releases/</url>
+            <url>http://106.37.100.106:1721/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>nexus3</id>
             <name>snapshots</name>
-            <url>http://43.140.210.213:1721/repository/maven-snapshots/</url>
+            <url>http://106.37.100.106:1721/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -157,7 +157,7 @@
         <repository>
             <id>nexus</id>
             <name>nexus</name>
-            <url>http://43.140.210.213:1721/repository/maven-public/</url>
+            <url>http://106.37.100.106:1721/repository/maven-public/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
