@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.oracle.xstream;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -41,8 +43,6 @@ import oracle.streams.RowLCR;
 import oracle.streams.StreamsException;
 import oracle.streams.XStreamLCRCallbackHandler;
 import oracle.streams.XStreamOut;
-
-import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
 
 /**
  * Handler for Oracle DDL and DML events. Just forwards events to the {@link EventDispatcher}.

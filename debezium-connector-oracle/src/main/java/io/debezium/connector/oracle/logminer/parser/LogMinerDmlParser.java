@@ -5,13 +5,13 @@
  */
 package io.debezium.connector.oracle.logminer.parser;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 import io.debezium.DebeziumException;
 import io.debezium.connector.oracle.logminer.LogMinerHelper;
 import io.debezium.connector.oracle.logminer.valueholder.LogMinerDmlEntry;
 import io.debezium.connector.oracle.logminer.valueholder.LogMinerDmlEntryImpl;
 import io.debezium.relational.Table;
-
-import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
 
 /**
  * A simple DML parser implementation specifically for Oracle LogMiner.

@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.oracle;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 import java.sql.Clob;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -43,8 +45,6 @@ import io.debezium.relational.Tables.TableFilter;
 import io.debezium.util.Strings;
 
 import oracle.jdbc.OracleTypes;
-
-import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
 
 public class OracleConnection extends JdbcConnection {
 
