@@ -6,6 +6,7 @@
 package io.debezium.connector.oracle;
 
 import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+import static io.debezium.connector.oracle.OracleConnectorConfig.showRowid;
 
 import java.sql.Clob;
 import java.sql.DatabaseMetaData;
@@ -345,7 +346,7 @@ public class OracleConnection extends JdbcConnection {
             }
         }
         try {
-            if (!editor.hasPrimaryKey()) {
+            if (!editor.hasPrimaryKey() && showRowid) {
                 int generatedColumnId = columnNames.size() + 1;
                 editor.addColumn(createRowidColumn(generatedColumnId));
                 editor.setPrimaryKeyNames(GENERATED_PK_NAME);
