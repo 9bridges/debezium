@@ -5,6 +5,9 @@
  */
 package io.debezium.connector.oracle;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+import static io.debezium.connector.oracle.OracleConnectorConfig.showRowid;
+
 import java.sql.Clob;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -34,6 +37,7 @@ import io.debezium.config.Field;
 import io.debezium.connector.oracle.OracleConnectorConfig.ConnectorAdapter;
 import io.debezium.jdbc.JdbcConnection;
 import io.debezium.relational.Column;
+import io.debezium.relational.ColumnEditor;
 import io.debezium.relational.TableEditor;
 import io.debezium.relational.TableId;
 import io.debezium.relational.Tables;
@@ -299,6 +303,21 @@ public class OracleConnection extends JdbcConnection {
         return false;
     }
 
+    protected Column createRowidColumn(int position) throws SQLException {
+
+        final String columnName = GENERATED_PK_NAME;
+        final ColumnEditor column = Column.editor().name(columnName);
+        column.type("ROWID");
+        column.length(19);
+        column.optional(true);
+        column.position(position);
+        column.autoIncremented(true);
+        column.generated(false);
+        column.nativeType(-1);
+        column.jdbcType(Types.VARCHAR);
+        return column.create();
+    }
+
     private void overrideOracleSpecificColumnTypes(Tables tables, TableId tableId, TableId tableIdWithCatalog) {
         TableEditor editor = tables.editTable(tableId);
         editor.tableId(tableIdWithCatalog);
@@ -325,6 +344,16 @@ public class OracleConnection extends JdbcConnection {
                                             .create());
                         });
             }
+        }
+        try {
+            if (!editor.hasPrimaryKey() && showRowid) {
+                int generatedColumnId = columnNames.size() + 1;
+                editor.addColumn(createRowidColumn(generatedColumnId));
+                editor.setPrimaryKeyNames(GENERATED_PK_NAME);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         tables.overwriteTable(editor.create());
     }

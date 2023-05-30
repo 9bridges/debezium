@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.oracle;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
@@ -262,8 +264,12 @@ public class OracleSnapshotChangeEventSource extends RelationalSnapshotChangeEve
     protected Optional<String> getSnapshotSelect(RelationalSnapshotContext<OracleOffsetContext> snapshotContext, TableId tableId) {
         final OracleOffsetContext offset = snapshotContext.offset;
         final String snapshotOffset = offset.getScn().toString();
+        Table table = snapshotContext.tables.forTable(tableId);
         assert snapshotOffset != null;
-        return Optional.of("SELECT * FROM " + quote(tableId) + " AS OF SCN " + snapshotOffset);
+        String select = table.edit().primaryKeyColumnNames().contains(GENERATED_PK_NAME)
+                ? "SELECT A.*, ROWID \"" + GENERATED_PK_NAME + "\" FROM " + quote(tableId) + " AS OF SCN " + snapshotOffset + " A"
+                : "SELECT * FROM " + quote(tableId) + " AS OF SCN " + snapshotOffset;
+        return Optional.of(select);
     }
 
     @Override

@@ -61,6 +61,8 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
 
     protected final static Duration ARCHIVE_LOG_ONLY_POLL_TIME = Duration.ofMillis(10_000);
     protected final static int DEFAULT_ORAGENT_SERVER_PORT = 8303;
+
+    public static final String GENERATED_PK_NAME = "__SYNJQ_PK_COLUMN";
     public static final Field PORT = RelationalDatabaseConnectorConfig.PORT
             .withDefault(DEFAULT_PORT);
 
@@ -331,6 +333,14 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
             .withImportance(Importance.LOW)
             .withDefault(DEFAULT_ORAGENT_SERVER_PORT)
             .withDescription("The port to bind to recive oragent entry");
+
+    public static final Field SHOW_ROWID = Field.create("show.rowid")
+            .withDisplayName("Specifies whether the connector output rowid for nopk table")
+            .withType(Type.BOOLEAN)
+            .withWidth(Width.SHORT)
+            .withImportance(Importance.LOW)
+            .withDefault(false)
+            .withDescription("When set to `false`, if table nopk, can't output rowid");
     private static final ConfigDefinition CONFIG_DEFINITION = HistorizedRelationalDatabaseConnectorConfig.CONFIG_DEFINITION.edit()
             .name("Oracle")
             .excluding(
@@ -375,7 +385,8 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
                     LOG_MINING_ARCHIVE_DESTINATION_NAME,
                     LOG_MINING_ARCHIVE_LOG_ONLY_SCN_POLL_INTERVAL_MS,
                     UNAVAILABLE_VALUE_PLACEHOLDER,
-                    ORAGENT_SERVER_PORT)
+                    ORAGENT_SERVER_PORT,
+                    SHOW_ROWID)
             .create();
 
     /**
@@ -425,6 +436,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
     private final String logMiningArchiveDestinationName;
 
     private final int oragentServerPort;
+    public static boolean showRowid;
 
     public OracleConnectorConfig(Configuration config) {
         super(OracleConnector.class, config, config.getString(SERVER_NAME), new SystemTablesPredicate(config), x -> x.schema() + "." + x.table(), true,
@@ -466,6 +478,7 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
         this.logMiningArchiveDestinationName = config.getString(LOG_MINING_ARCHIVE_DESTINATION_NAME);
         this.archiveLogOnlyScnPollTime = Duration.ofMillis(config.getInteger(LOG_MINING_ARCHIVE_LOG_ONLY_SCN_POLL_INTERVAL_MS));
         this.oragentServerPort = config.getInteger(ORAGENT_SERVER_PORT);
+        showRowid = config.getBoolean(SHOW_ROWID);
     }
 
     private static String toUpperCase(String property) {

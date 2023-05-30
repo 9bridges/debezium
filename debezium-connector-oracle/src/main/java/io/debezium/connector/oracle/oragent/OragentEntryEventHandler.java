@@ -86,7 +86,7 @@ class OragentEntryEventHandler {
 
         // After a restart it may happen we get the event with the last processed LCR again
         Scn offsetScn = offsetContext.getScn();
-        if (oragentEntryScn.compareTo(offsetScn) <= 0) {
+        if (oragentEntryScn.compareTo(offsetScn) < 0) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Ignoring change event with already processed SCN {}, last SCN {}",
                         oragentEntryScn, offsetScn);

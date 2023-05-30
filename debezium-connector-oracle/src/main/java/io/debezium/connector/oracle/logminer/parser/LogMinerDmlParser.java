@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.oracle.logminer.parser;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 import io.debezium.DebeziumException;
 import io.debezium.connector.oracle.logminer.LogMinerHelper;
 import io.debezium.connector.oracle.logminer.valueholder.LogMinerDmlEntry;
@@ -63,12 +65,14 @@ public class LogMinerDmlParser implements DmlParser {
     private static final int VALUES_LENGTH = VALUES.length();
     private static final int SET_LENGTH = SET.length();
     private static final int WHERE_LENGTH = WHERE.length();
+    private String rowid;
 
     @Override
-    public LogMinerDmlEntry parse(String sql, Table table, String txId) {
+    public LogMinerDmlEntry parse(String sql, Table table, String txId, String rowid) {
         if (table == null) {
             throw new DmlParserException("DML parser requires a non-null table");
         }
+        this.rowid = rowid;
         if (sql != null && sql.length() > 0) {
             switch (sql.charAt(0)) {
                 case 'i':
@@ -83,6 +87,12 @@ public class LogMinerDmlParser implements DmlParser {
             }
         }
         throw new DmlParserException("Unknown supported SQL '" + sql + "'");
+    }
+
+    private void dispatchRowid(Table table, Object[] values) {
+        if (table.primaryKeyColumnNames().contains(GENERATED_PK_NAME)) {
+            values[values.length - 1] = rowid;
+        }
     }
 
     private LogMinerDmlEntry parseTruncate(String sql, Table table) {
@@ -121,7 +131,7 @@ public class LogMinerDmlParser implements DmlParser {
             // capture values
             Object[] newValues = new Object[table.columns().size()];
             parseColumnValuesClause(sql, index, columnNames, newValues, table);
-
+            dispatchRowid(table, newValues);
             return LogMinerDmlEntryImpl.forInsert(newValues);
         }
         catch (Exception e) {
@@ -165,7 +175,8 @@ public class LogMinerDmlParser implements DmlParser {
                     newValues[i] = oldValues[i];
                 }
             }
-
+            dispatchRowid(table, newValues);
+            dispatchRowid(table, oldValues);
             return LogMinerDmlEntryImpl.forUpdate(newValues, oldValues);
         }
         catch (Exception e) {
@@ -191,7 +202,7 @@ public class LogMinerDmlParser implements DmlParser {
             // parse where
             Object[] oldValues = new Object[table.columns().size()];
             parseWhereClause(sql, index, oldValues, table);
-
+            dispatchRowid(table, oldValues);
             return LogMinerDmlEntryImpl.forDelete(oldValues);
         }
         catch (Exception e) {

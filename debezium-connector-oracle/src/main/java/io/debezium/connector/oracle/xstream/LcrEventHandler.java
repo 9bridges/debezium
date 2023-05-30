@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.oracle.xstream;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -219,6 +221,12 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
                 }
             }
         }
+
+        if (table.primaryKeyColumnNames().contains(GENERATED_PK_NAME)) {
+            oldChunkValues.put(GENERATED_PK_NAME, lcr.getAttribute("ROW_ID"));
+            chunkValues.put(GENERATED_PK_NAME, lcr.getAttribute("ROW_ID"));
+        }
+
         dispatcher.dispatchDataChangeEvent(
                 tableId,
                 new XStreamChangeRecordEmitter(offsetContext, lcr, oldChunkValues, chunkValues, schema.tableFor(tableId), clock));

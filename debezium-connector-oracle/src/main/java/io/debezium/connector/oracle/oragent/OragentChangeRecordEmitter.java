@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.oracle.oragent;
 
+import static io.debezium.connector.oracle.OracleConnectorConfig.GENERATED_PK_NAME;
+
 import io.debezium.connector.oracle.BaseChangeRecordEmitter;
 import io.debezium.data.Envelope.Operation;
 import io.debezium.pipeline.spi.OffsetContext;
@@ -39,12 +41,27 @@ public class OragentChangeRecordEmitter extends BaseChangeRecordEmitter<Object> 
 
     @Override
     protected Object[] getOldColumnValues() {
-        return oragentDmlEntry.getOldValues();
+        return getColumnValues(oragentDmlEntry.getOldValues());
     }
 
     @Override
     protected Object[] getNewColumnValues() {
-        return oragentDmlEntry.getNewValues();
+        return getColumnValues(oragentDmlEntry.getNewValues());
+    }
+
+    private Object[] getColumnValues(Object[] columnValues) {
+        if (!table.primaryKeyColumnNames().contains(GENERATED_PK_NAME)) {
+            return columnValues;
+        }
+        else {
+            int i;
+            Object[] values = new Object[table.columns().size()];
+            for (i = 0; i < columnValues.length; i++) {
+                values[i] = columnValues[i];
+            }
+            values[i] = oragentDmlEntry.getRowid();
+            return values;
+        }
     }
 
 }

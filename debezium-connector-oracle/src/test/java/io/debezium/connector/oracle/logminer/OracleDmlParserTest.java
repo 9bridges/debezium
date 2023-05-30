@@ -339,7 +339,7 @@ public class OracleDmlParserTest {
 
     private void assertDmlParserException(String sql, DmlParser parser, Table table, String txId) {
         try {
-            LogMinerDmlEntry dml = parser.parse(sql, table, txId);
+            LogMinerDmlEntry dml = parser.parse(sql, table, txId, null);
         }
         catch (Exception e) {
             assertThat(e).isInstanceOf(DmlParserException.class);
