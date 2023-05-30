@@ -194,14 +194,14 @@ public class OracleConnection extends JdbcConnection {
      * @throws SQLException if a database exception occurred
      */
     protected Set<TableId> getAllTableIds(String catalogName) throws SQLException {
-        final String query = "select owner, segment_name from dba_segments \n" +
-                " where segment_name NOT LIKE 'MDRT_%' \n" +
-                " and segment_name NOT LIKE 'MDRS_%'\n" +
-                " and segment_name NOT LIKE 'MDXT_%'\n" +
-                " and (segment_name NOT LIKE 'SYS_IOT_OVER_%')\n" +
-                " and segment_type = 'TABLE'\n" +
-                " and segment_name NOT LIKE 'BIN$%'\n" +
-                " ORDER BY bytes desc";
+        final String query = "select owner, table_name from all_tables " +
+                // filter special spatial tables
+                "where table_name NOT LIKE 'MDRT_%' " +
+                "and table_name NOT LIKE 'MDRS_%' " +
+                "and table_name NOT LIKE 'MDXT_%' " +
+                "and temporary!='Y' " +
+                // filter index-organized-tables
+                "and (table_name NOT LIKE 'SYS_IOT_OVER_%' and IOT_NAME IS NULL) ";
 
         Set<TableId> tableIds = new LinkedHashSet<>();
         query(query, (rs) -> {
