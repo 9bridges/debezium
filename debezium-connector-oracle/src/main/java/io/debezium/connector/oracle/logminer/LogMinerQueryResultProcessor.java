@@ -172,13 +172,15 @@ class LogMinerQueryResultProcessor {
                             final TableId tableId = RowMapper.getTableId(connectorConfig.getCatalogName(), resultSet);
                             if (isTruncate(redoSql)) {
                                 final Table table = getTableForDmlEvent(tableId);
-                                transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
-                                    final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId, rowId);
-                                    dmlEntry.setObjectOwner(segOwner);
-                                    dmlEntry.setObjectName(tableName);
-                                    return dmlEntry;
-                                },
-                                        changeTime.toInstant(), rowId, rsId);
+                                if (table != null) {
+                                    transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
+                                                final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId, rowId);
+                                                dmlEntry.setObjectOwner(segOwner);
+                                                dmlEntry.setObjectName(tableName);
+                                                return dmlEntry;
+                                            },
+                                            changeTime.toInstant(), rowId, rsId);
+                                }
                             }
                             else {
                                 transactionalBuffer.registerDdlOperation(scn);

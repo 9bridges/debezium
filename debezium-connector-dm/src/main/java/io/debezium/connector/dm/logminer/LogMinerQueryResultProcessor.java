@@ -191,14 +191,16 @@ class LogMinerQueryResultProcessor {
                             final TableId tableId = RowMapper.getTableId(connectorConfig.getCatalogName(), segOwner, tableName);
                             if (isTruncate(redoSql)) {
                                 final Table table = getTableForDmlEvent(tableId);
-                                String finalSegOwner = segOwner;
-                                transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
-                                    final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId);
-                                    dmlEntry.setObjectOwner(finalSegOwner);
-                                    dmlEntry.setObjectName(tableName);
-                                    return dmlEntry;
-                                },
-                                        changeTime.toInstant(), rowId, rsId);
+                                if (table != null) {
+                                    String finalSegOwner = segOwner;
+                                    transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
+                                                final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId);
+                                                dmlEntry.setObjectOwner(finalSegOwner);
+                                                dmlEntry.setObjectName(tableName);
+                                                return dmlEntry;
+                                            },
+                                            changeTime.toInstant(), rowId, rsId);
+                                }
                             }
                             else {
                                 transactionalBuffer.registerDdlOperation(scn);
