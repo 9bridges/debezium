@@ -174,11 +174,11 @@ class LogMinerQueryResultProcessor {
                                 final Table table = getTableForDmlEvent(tableId);
                                 if (table != null) {
                                     transactionalBuffer.registerDmlOperation(operationCode, txId, scn, tableId, () -> {
-                                                final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId, rowId);
-                                                dmlEntry.setObjectOwner(segOwner);
-                                                dmlEntry.setObjectName(tableName);
-                                                return dmlEntry;
-                                            },
+                                        final LogMinerDmlEntry dmlEntry = parse(redoSql, table, txId, rowId);
+                                        dmlEntry.setObjectOwner(segOwner);
+                                        dmlEntry.setObjectName(tableName);
+                                        return dmlEntry;
+                                    },
                                             changeTime.toInstant(), rowId, rsId);
                                 }
                             }
