@@ -239,7 +239,7 @@ public class DMSnapshotChangeEventSource extends RelationalSnapshotChangeEventSo
         String snapshotOffset = (String) snapshotContext.offset.getOffset().get(SourceInfo.SCN_KEY);
         String token = connectorConfig.getTokenToReplaceInSnapshotPredicate();
         if (token != null) {
-            return overriddenSelect.replaceAll(token, " AS OF SCN " + snapshotOffset);
+            return overriddenSelect.replaceAll(token, " " /* + snapshotOffset */);
         }
         return overriddenSelect;
     }
@@ -263,7 +263,7 @@ public class DMSnapshotChangeEventSource extends RelationalSnapshotChangeEventSo
         final DMOffsetContext offset = snapshotContext.offset;
         final String snapshotOffset = offset.getScn().toString();
         assert snapshotOffset != null;
-        return Optional.of("SELECT * FROM " + quote(tableId) + " AS OF SCN " + snapshotOffset);
+        return Optional.of("SELECT * FROM " + quote(tableId) /* + " AS OF SCN " + snapshotOffset */);
     }
 
     @Override
