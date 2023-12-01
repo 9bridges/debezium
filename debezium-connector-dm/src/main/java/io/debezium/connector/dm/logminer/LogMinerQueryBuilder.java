@@ -122,7 +122,7 @@ public class LogMinerQueryBuilder {
             query.append("AND ").append(tablePredicate).append(" ");
         }
 
-        query.append(")) ORDER BY 1");
+        query.append(")) ORDER BY SCN,RS_ID,SSN ");
 
         return query.toString();
     }
