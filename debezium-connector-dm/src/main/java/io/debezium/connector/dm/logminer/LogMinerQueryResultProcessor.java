@@ -124,7 +124,7 @@ class LogMinerQueryResultProcessor {
 
             String redoSql = RowMapper.getSqlRedo(resultSet, dml, historyRecorder, scn, tableName, segOwner, operationCode, changeTime, txId);
 
-            LOGGER.info("sql={}, xid={}, scn={}, operationCode={}, operation={}, table={}, segOwner={}, userName={}, rowId={}, rollbackFlag={}", redoSql, txId, scn,
+            LOGGER.debug("sql={}, xid={}, scn={}, operationCode={}, operation={}, table={}, segOwner={}, userName={}, rowId={}, rollbackFlag={}", redoSql, txId, scn,
                     operationCode, operation,
                     tableName, segOwner, userName, rowId, rollbackFlag);
 

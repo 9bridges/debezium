@@ -94,7 +94,7 @@ public class DMSnapshotChangeEventSource extends RelationalSnapshotChangeEventSo
                     }
 
                     LOGGER.debug("Locking table {}", tableId);
-                    statement.execute("LOCK TABLE " + quote(tableId) + " IN ROW SHARE MODE");
+                    // statement.execute("LOCK TABLE " + quote(tableId) + " IN ROW SHARE MODE");
                 }
             }
         }
