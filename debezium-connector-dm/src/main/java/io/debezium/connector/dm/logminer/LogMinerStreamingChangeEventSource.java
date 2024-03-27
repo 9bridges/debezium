@@ -180,7 +180,7 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                             // This is the way to mitigate PGA leaks.
                             // With one mining session, it grows and maybe there is another way to flush PGA.
                             // At this point we use a new mining session
-                            LOGGER.info("Ending log mining startScn={}, endScn={}, offsetContext.getScn={}, strategy={}, continuous={}",
+                            LOGGER.debug("Ending log mining startScn={}, endScn={}, offsetContext.getScn={}, strategy={}, continuous={}",
                                     startScn, endScn, offsetContext.getScn(), strategy, isContinuousMining);
 
                             initializeRedoLogsForMining(jdbcConnection, true, startScn);
@@ -191,10 +191,10 @@ public class LogMinerStreamingChangeEventSource implements StreamingChangeEventS
                             // current redo log sequence to be advanced due to a complete log switch of all logs.
                             currentArchivedLogSequences = getCurrentArchivedLogSequences();
                             /* } */
-                            LOGGER.info("Fetching LogMiner view results SCN {} to {}", startScn, endScn);
+                            LOGGER.debug("Fetching LogMiner view results SCN {} to {}", startScn, endScn);
                             startLogMining(jdbcConnection, startScn, endScn, strategy, isContinuousMining, streamingMetrics);
 
-                            LOGGER.info("Fetching LogMiner view results SCN {} to {}", startScn, endScn);
+                            LOGGER.debug("Fetching LogMiner view results SCN {} to {}", startScn, endScn);
                             stopwatch.start();
                             miningView.setFetchSize(connectorConfig.getMaxQueueSize());
                             miningView.setFetchDirection(ResultSet.FETCH_FORWARD);
