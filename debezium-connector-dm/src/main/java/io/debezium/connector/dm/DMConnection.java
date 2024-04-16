@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.dm;
 
+import static io.debezium.connector.dm.DMConnectorConfig.GENERATED_PK_NAME;
+
 import java.sql.Clob;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -33,6 +35,7 @@ import io.debezium.config.Field;
 import io.debezium.connector.dm.DMConnectorConfig.ConnectorAdapter;
 import io.debezium.jdbc.JdbcConnection;
 import io.debezium.relational.Column;
+import io.debezium.relational.ColumnEditor;
 import io.debezium.relational.TableEditor;
 import io.debezium.relational.TableId;
 import io.debezium.relational.Tables;
@@ -296,6 +299,21 @@ public class DMConnection extends JdbcConnection {
         return false;
     }
 
+    protected Column createRowidColumn(int position) throws SQLException {
+
+        final String columnName = GENERATED_PK_NAME;
+        final ColumnEditor column = Column.editor().name(columnName);
+        column.type("ROWID");
+        column.length(19);
+        column.optional(true);
+        column.position(position);
+        column.autoIncremented(true);
+        column.generated(false);
+        column.nativeType(-1);
+        column.jdbcType(Types.VARCHAR);
+        return column.create();
+    }
+
     private void overrideDMSpecificColumnTypes(Tables tables, TableId tableId, TableId tableIdWithCatalog) {
         TableEditor editor = tables.editTable(tableId);
         editor.tableId(tableIdWithCatalog);
@@ -334,6 +352,16 @@ public class DMConnection extends JdbcConnection {
                                             .create());
                         });
             }
+        }
+        try {
+            if (!editor.hasPrimaryKey()) {
+                int generatedColumnId = columnNames.size() + 1;
+                editor.addColumn(createRowidColumn(generatedColumnId));
+                editor.setPrimaryKeyNames(GENERATED_PK_NAME);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         tables.overwriteTable(editor.create());
     }

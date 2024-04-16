@@ -67,6 +67,10 @@ public class SimpleDmlParser implements DmlParser {
         pm = new CCJSqlParserManager();
     }
 
+    public LogMinerDmlEntry parse(String dmlContent, Table table, String txId) {
+        return parse(dmlContent, table, txId, null);
+    }
+
     /**
      * This parses a DML
      * @param dmlContent DML
@@ -74,7 +78,7 @@ public class SimpleDmlParser implements DmlParser {
      * @return parsed value holder class
      */
     @Override
-    public LogMinerDmlEntry parse(String dmlContent, Table table, String txId) {
+    public LogMinerDmlEntry parse(String dmlContent, Table table, String txId, String rowid) {
         try {
 
             // If a table contains Spatial data type, DML input generates two entries in REDO LOG.
