@@ -5,6 +5,8 @@
  */
 package io.debezium.connector.dm;
 
+import static io.debezium.connector.dm.DMConnectorConfig.GENERATED_PK_NAME;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
@@ -262,8 +264,12 @@ public class DMSnapshotChangeEventSource extends RelationalSnapshotChangeEventSo
     protected Optional<String> getSnapshotSelect(RelationalSnapshotContext<DMOffsetContext> snapshotContext, TableId tableId) {
         final DMOffsetContext offset = snapshotContext.offset;
         final String snapshotOffset = offset.getScn().toString();
+        Table table = snapshotContext.tables.forTable(tableId);
         assert snapshotOffset != null;
-        return Optional.of("SELECT * FROM " + quote(tableId) /* + " AS OF SCN " + snapshotOffset */);
+        String select = table.edit().primaryKeyColumnNames().contains(GENERATED_PK_NAME)
+                ? "SELECT A.*, to_char(ROWID) " + GENERATED_PK_NAME + " FROM " + quote(tableId) + " A"
+                : "SELECT * FROM " + quote(tableId);
+        return Optional.of(select);
     }
 
     @Override

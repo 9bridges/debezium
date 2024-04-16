@@ -60,6 +60,7 @@ public class DMConnectorConfig extends HistorizedRelationalDatabaseConnectorConf
     protected final static Duration SLEEP_TIME_INCREMENT = Duration.ofMillis(200);
 
     protected final static Duration ARCHIVE_LOG_ONLY_POLL_TIME = Duration.ofMillis(10_000);
+    public static final String GENERATED_PK_NAME = "__FZS_PK_COLUMN";
     protected final static int DEFAULT_ORAGENT_SERVER_PORT = 8303;
     public static final Field PORT = RelationalDatabaseConnectorConfig.PORT
             .withDefault(DEFAULT_PORT);
