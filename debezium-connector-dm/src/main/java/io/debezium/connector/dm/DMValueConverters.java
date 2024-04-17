@@ -779,7 +779,7 @@ public class DMValueConverters extends JdbcValueConverters {
      */
     private String getHexToRawHexString(String hexToRawValue) {
         if (isHexToRawFunctionCall(hexToRawValue)) {
-            return hexToRawValue.substring(3);
+            return hexToRawValue.substring(2);
         }
         return hexToRawValue;
     }
