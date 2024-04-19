@@ -95,7 +95,8 @@ public class LogMinerDmlParser implements DmlParser {
 
     private void dispatchRowid(Table table, Object[] values) {
         if (table.primaryKeyColumnNames().contains(GENERATED_PK_NAME)) {
-            values[values.length - 1] = rowid;
+            int position = LogMinerHelper.getColumnIndexByName(GENERATED_PK_NAME, table);
+            values[position] = rowid;
         }
     }
 
