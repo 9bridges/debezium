@@ -2754,6 +2754,7 @@ collection_item
 
 rename_column_clause
     : RENAME COLUMN old_column_name TO new_column_name
+    | ALTER COLUMN old_column_name RENAME TO new_column_name
     ;
 
 old_column_name
@@ -2773,7 +2774,7 @@ add_modify_drop_column_clauses
 
 drop_column_clause
     : SET UNUSED (COLUMN column_name| ('(' column_name (',' column_name)* ')' )) (CASCADE CONSTRAINTS | INVALIDATE)*
-    | DROP (COLUMN column_name | '(' column_name (',' column_name)* ')' ) (CASCADE CONSTRAINTS | INVALIDATE)* (CHECKPOINT UNSIGNED_INTEGER)?
+    | DROP (COLUMN? (IF EXISTS)? column_name | '(' column_name (',' column_name)* ')' ) (CASCADE CONSTRAINTS | INVALIDATE)* (CHECKPOINT UNSIGNED_INTEGER)?
     | DROP (UNUSED COLUMNS | COLUMNS CONTINUE) (CHECKPOINT UNSIGNED_INTEGER)
     ;
 
@@ -2793,8 +2794,8 @@ modify_col_substitutable
     ;
 
 add_column_clause
-    : ADD (column_definition | virtual_column_definition)
-    | ADD ('(' (column_definition | virtual_column_definition) (',' (column_definition
+    : ADD COLUMN? (IF NOT EXISTS)? (column_definition | virtual_column_definition)
+    | ADD COLUMN? (IF NOT EXISTS)? ('(' (column_definition | virtual_column_definition) (',' (column_definition
               | virtual_column_definition)
               )*
           ')'
