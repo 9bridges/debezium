@@ -221,6 +221,7 @@ class LogMinerQueryResultProcessor {
                     catch (InterruptedException e) {
                         throw new DebeziumException("Failed to dispatch DDL event", e);
                     }
+                    break;
                 }
                 case RowMapper.MISSING_SCN: {
                     historyRecorder.record(scn, tableName, segOwner, operationCode, changeTime, txId, 0, redoSql);
