@@ -1741,11 +1741,28 @@ create_cluster
           (CACHE | NOCACHE)?
           ';'
     ;
+damengStorageClause
+    : STORAGE '(' damengStorageItem (',' damengStorageItem)* ')'
+    ;
 
+damengStorageItem
+    : INITIAL UNSIGNED_INTEGER
+    | NEXT UNSIGNED_INTEGER
+    | MINEXTENTS UNSIGNED_INTEGER
+    | ON identifier
+    | FILLFACTOR UNSIGNED_INTEGER
+    | BRANCH UNSIGNED_INTEGER
+    | BRANCH '(' UNSIGNED_INTEGER ',' UNSIGNED_INTEGER ')'
+    | NOBRANCH
+    | CLUSTERBTR
+    | WITH COUNTER
+    | WITHOUT COUNTER
+    | USING LONG ROW
+    ;
 create_table
-    : CREATE (GLOBAL TEMPORARY)? TABLE tableview_name
+    : CREATE (GLOBAL TEMPORARY)? TABLE (IF NOT EXISTS)? tableview_name
         (SHARING '=' (NONE | METADATA | DATA | EXTENDED DATA))?
-        (relational_table | object_table | xmltype_table) (USAGE QUEUE)? (AS select_only_statement)?
+        (relational_table | object_table | xmltype_table) damengStorageClause? (USAGE QUEUE)? (AS select_only_statement)?
       ';'
     ;
 
@@ -2209,7 +2226,7 @@ truncate_table
     ;
 
 drop_table
-    : DROP TABLE tableview_name (AS tableview_name)? (CASCADE CONSTRAINTS)? PURGE? (AS quoted_string)? SEMICOLON
+    : DROP TABLE (IF EXISTS)? tableview_name (AS tableview_name)? ((CASCADE | RESTRICT)? CONSTRAINTS?)? PURGE? (AS quoted_string)? SEMICOLON
     ;
 
 drop_view
@@ -2920,7 +2937,7 @@ end_time_column
     ;
 
 column_definition
-    : column_name (datatype | type_name)
+    : column_name (datatype | type_name) (NOT VISIBLE)?
          SORT?  (DEFAULT expression)? (ENCRYPT (USING  CHAR_STRING)? (IDENTIFIED BY regular_id)? CHAR_STRING? (NO? SALT)? )?  (inline_constraint* | inline_ref_constraint)
     ;
 
