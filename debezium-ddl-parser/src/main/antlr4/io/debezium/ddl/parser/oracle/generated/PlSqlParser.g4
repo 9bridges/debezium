@@ -1982,7 +1982,7 @@ hash_subparts_by_quantity
 range_values_clause
     : VALUES LESS THAN
         ('(' literal (',' literal)* ')' |
-            '(' TIMESTAMP literal (',' TIMESTAMP literal)* ')')
+            '(' (TIMESTAMP|DATETIME) literal (',' (TIMESTAMP|DATETIME) literal)* ')')
     ;
 
 list_values_clause
@@ -4558,6 +4558,7 @@ native_datatype_element
     | TIMEZONE_REGION
     | TIMEZONE_ABBR
     | TIMESTAMP
+    | DATETIME
     | TIMESTAMP_UNCONSTRAINED
     | TIMESTAMP_TZ_UNCONSTRAINED
     | TIMESTAMP_LTZ_UNCONSTRAINED
@@ -4715,7 +4716,7 @@ system_privilege
 // $<Lexer Mappings
 
 constant
-    : TIMESTAMP (quoted_string | bind_variable) (AT TIME ZONE quoted_string)?
+    : (TIMESTAMP | DATETIME) (quoted_string | bind_variable) (AT TIME ZONE quoted_string)?
     | INTERVAL (quoted_string | bind_variable | general_element_part)
       (YEAR | MONTH | DAY | HOUR | MINUTE | SECOND)
       ('(' (UNSIGNED_INTEGER | bind_variable) (',' (UNSIGNED_INTEGER | bind_variable) )? ')')?
@@ -6713,6 +6714,7 @@ non_reserved_keywords_pre12c
     | TIMEOUT
     | TIMES
     | TIMESTAMP
+    | DATETIME
     | TIMEZONE
     | TIMEZONE_ABBR
     | TIMEZONE_HOUR

@@ -141,7 +141,7 @@ public class ColumnDefinitionParserListener extends BaseParserListener {
                         .jdbcType(Types.TIMESTAMP)
                         .type("DATE");
             }
-            else if (ctx.native_datatype_element().TIMESTAMP() != null) {
+            else if (ctx.native_datatype_element().TIMESTAMP() != null || ctx.native_datatype_element().DATETIME() != null) {
                 if (ctx.WITH() != null
                         && ctx.TIME() != null
                         && ctx.ZONE() != null) {
