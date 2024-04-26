@@ -1339,7 +1339,8 @@ inline_constraint
     : (CONSTRAINT constraint_name)?
         ( NOT? NULL_
         | UNIQUE
-        | PRIMARY KEY
+        | (NOT? CLUSTER)? PRIMARY KEY
+        | CLUSTER UNIQUE? KEY
         | references_clause
         | check_constraint
         )
@@ -1361,7 +1362,8 @@ out_of_line_ref_constraint
 out_of_line_constraint
     : ( (CONSTRAINT constraint_name)?
           ( UNIQUE '(' column_name (',' column_name)* ')'
-          | PRIMARY KEY '(' column_name (',' column_name)* ')'
+          | (NOT? CLUSTER)? PRIMARY KEY '(' column_name (',' column_name)* ')'
+          | CLUSTER UNIQUE? KEY '(' column_name (',' column_name)* ')'
           | foreign_key_clause
           | CHECK '(' expression ')'
           )
