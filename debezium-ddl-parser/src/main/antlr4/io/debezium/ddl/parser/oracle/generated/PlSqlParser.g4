@@ -642,7 +642,7 @@ global_partitioned_index
     ;
 
 index_partitioning_clause
-    : PARTITION partition_name? VALUES LESS THAN '(' literal (',' literal)* ')'
+    : PARTITION partition_name? VALUES (EQU OR)? LESS THAN '(' literal (',' literal)* ')'
         segment_attributes_clause?
     ;
 
@@ -1995,17 +1995,17 @@ individual_hash_subparts
     ;
 
 hash_subparts_by_quantity
-    : SUBPARTITIONS UNSIGNED_INTEGER (STORE IN '(' tablespace (',' tablespace)* ')' )?
+    : SUBPARTITIONS UNSIGNED_INTEGER (STORE IN '(' tablespace (',' tablespace)* ')' )? damengStorageClause?
     ;
 
 range_values_clause
-    : VALUES LESS THAN
+    : VALUES (EQU OR)? LESS THAN
         ('(' literal (',' literal)* ')' |
-            '(' (TIMESTAMP|DATETIME) literal (',' (TIMESTAMP|DATETIME) literal)* ')')
+            '(' (TIMESTAMP|DATETIME) literal (',' (TIMESTAMP|DATETIME) literal)* ')') damengStorageClause?
     ;
 
 list_values_clause
-    : VALUES '(' (literal (',' literal)* | DEFAULT) ')'
+    : VALUES '(' (literal (',' literal)* | DEFAULT) ')' damengStorageClause?
     ;
 
 table_partition_description
@@ -2023,6 +2023,7 @@ partitioning_storage_clause
       | lob_partitioning_storage
       | VARRAY varray_item STORE AS (BASICFILE | SECUREFILE)? LOB lob_segname
       )+
+    | damengStorageClause?
     ;
 
 lob_partitioning_storage

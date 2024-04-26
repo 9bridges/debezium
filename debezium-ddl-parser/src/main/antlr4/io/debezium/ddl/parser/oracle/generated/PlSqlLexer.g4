@@ -502,6 +502,7 @@ EVAL:                         'EVAL';
 EVALNAME:                     'EVALNAME';
 EVALUATE:                     'EVALUATE';
 EVALUATION:                   'EVALUATION';
+EQU:                          'EQU';
 EVENTS:                       'EVENTS';
 EVERY:                        'EVERY';
 EXCEPT:                       'EXCEPT';
