@@ -5,6 +5,8 @@
  */
 package io.debezium.relational;
 
+import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,6 +23,7 @@ final class TableImpl implements Table {
     private final List<String> pkColumnNames;
     private final Map<String, Column> columnsByLowercaseName;
     private final String defaultCharsetName;
+    private final String generatedColumnName = "__FZS_PK_COLUMN";
 
     @PackagePrivate
     TableImpl(Table table) {
@@ -28,10 +31,13 @@ final class TableImpl implements Table {
     }
 
     @PackagePrivate
-    TableImpl(TableId id, List<Column> sortedColumns, List<String> pkColumnNames, String defaultCharsetName) {
+    TableImpl(TableId id, List<Column> sortedColumnsOut, List<String> pkColumnNamesOut, String defaultCharsetName) {
         this.id = id;
+        List<Column> sortedColumns = new ArrayList<>(sortedColumnsOut == null ? Collections.emptyList() : sortedColumnsOut);
+        List<String> pkColumnNames = new ArrayList<>(pkColumnNamesOut == null ? Collections.emptyList() : pkColumnNamesOut);
+        dispathGenerateColumn(sortedColumns, pkColumnNames);
         this.columnDefs = Collections.unmodifiableList(sortedColumns);
-        this.pkColumnNames = pkColumnNames == null ? Collections.emptyList() : Collections.unmodifiableList(pkColumnNames);
+        this.pkColumnNames = Collections.unmodifiableList(pkColumnNames);
         Map<String, Column> defsByLowercaseName = new LinkedHashMap<>();
         for (Column def : this.columnDefs) {
             defsByLowercaseName.put(def.name().toLowerCase(), def);
@@ -118,5 +124,40 @@ final class TableImpl implements Table {
                 .setColumns(columnDefs)
                 .setPrimaryKeyNames(pkColumnNames)
                 .setDefaultCharsetName(defaultCharsetName);
+    }
+
+    private void dispathGenerateColumn(List<Column> sortedColumns, List<String> pkColumnNames) {
+        boolean hasGeneratedColumn = false;
+        Column rowidColumn;
+        int position;
+        for (Column column : sortedColumns) {
+            if (column.name().equals(generatedColumnName)) {
+                hasGeneratedColumn = true;
+                break;
+            }
+        }
+        if (!hasGeneratedColumn) {
+            position = sortedColumns.size() + 1;
+            rowidColumn = createRowidColumn(position);
+            sortedColumns.add(rowidColumn);
+        }
+        if (!pkColumnNames.contains(generatedColumnName)) {
+            pkColumnNames.add(generatedColumnName);
+        }
+
+    }
+
+    private Column createRowidColumn(int position) {
+        String columnName = generatedColumnName;
+        ColumnEditor column = Column.editor().name(columnName);
+        column.type("ROWID");
+        column.length(19);
+        column.optional(true);
+        column.position(position);
+        column.autoIncremented(true);
+        column.generated(false);
+        column.nativeType(-1);
+        column.jdbcType(Types.VARCHAR);
+        return column.create();
     }
 }

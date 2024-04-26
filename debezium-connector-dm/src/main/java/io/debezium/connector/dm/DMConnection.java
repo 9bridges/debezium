@@ -353,16 +353,6 @@ public class DMConnection extends JdbcConnection {
                         });
             }
         }
-        try {
-            List<String> primaryKeyColumns = new ArrayList<>(editor.primaryKeyColumnNames());
-            int generatedColumnId = columnNames.size() + 1;
-            editor.addColumn(createRowidColumn(generatedColumnId));
-            primaryKeyColumns.add(GENERATED_PK_NAME);
-            editor.setPrimaryKeyNames(primaryKeyColumns);
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
         tables.overwriteTable(editor.create());
     }
 
