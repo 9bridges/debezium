@@ -1216,6 +1216,8 @@ OR:                           'OR';
 OR_PREDICATES:                'OR_PREDICATES';
 OSERROR:                      'OSERROR';
 OTHER:                        'OTHER';
+PENDANT:                      'PENDANT';
+AUTO_INCREMENT:               'AUTO_INCREMENT';
 OUTER_JOIN_TO_ANTI:           'OUTER_JOIN_TO_ANTI';
 OUTER_JOIN_TO_INNER:          'OUTER_JOIN_TO_INNER';
 OUTER:                        'OUTER';

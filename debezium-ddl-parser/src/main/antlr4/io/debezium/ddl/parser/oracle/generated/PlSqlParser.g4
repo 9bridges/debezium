@@ -2938,10 +2938,74 @@ start_time_column
 end_time_column
     : column_name
     ;
+columnDefinitionClause
+    : autoIncrementClause
+    | columnLevelConstraintDefinition
+    | autoIncrementClause columnLevelConstraintDefinition
+    | columnLevelConstraintDefinition DEFAULT (ON NULL_)? identifier
+    | columnLevelConstraintDefinition autoIncrementClause
+    ;
+
+autoIncrementClause
+    : 'IDENTITY' ('(' UNSIGNED_INTEGER ',' UNSIGNED_INTEGER ')')?
+    | AUTO_INCREMENT
+    ;
+
+columnLevelConstraintDefinition
+    : columnLevelIntegrityConstraint ( columnLevelIntegrityConstraint )*
+    ;
+
+columnLevelIntegrityConstraint
+    : ( 'CONSTRAINT' expression )? columnConstraintAction ( enableDisableOption )?
+    ;
+
+columnConstraintAction
+    : ( NOT? NULL_ )
+    | uniquenessConstraintOption ( 'USING' 'INDEX' 'TABLESPACE' ( identifier | 'DEFAULT' ) )?
+    | referenceConstraint
+    | 'CHECK' '(' expression ')'
+    | NOT VISIBLE
+    ;
+
+uniquenessConstraintOption
+    : PRIMARY KEY
+    | ( 'NOT'? 'CLUSTER' ) 'PRIMARY' 'KEY'
+    | 'CLUSTER' ( 'UNIQUE' )? 'KEY'
+    | 'UNIQUE'
+    ;
+
+referenceConstraint
+    : ( 'FOREIGN' 'KEY' )? 'REFERENCES' PENDANT? tableview_name '(' column_name ( ',' column_name )* ')' ( 'MATCH' ( 'FULL' | 'PARTIAL' | 'SIMPLE' ) )? ( referenceTriggerAction )? 'WITH' 'INDEX'
+    ;
+
+referenceTriggerAction
+    : updateRule ( deleteRule )?
+    | deleteRule ( updateRule )?
+    ;
+
+updateRule
+    : 'ON' 'UPDATE' referenceAction
+    ;
+
+deleteRule
+    : 'ON' 'DELETE' referenceAction
+    ;
+
+referenceAction
+    : 'CASCADE'
+    | 'SET' 'NULL'
+    | 'SET' 'DEFAULT'
+    | 'NO' 'ACTION'
+    ;
+
+enableDisableOption
+    : 'ENABLE'
+    | 'DISABLE'
+    ;
 
 column_definition
-    : column_name (datatype | type_name) (NOT VISIBLE)?
-         SORT?  (DEFAULT expression)? (ENCRYPT (USING  CHAR_STRING)? (IDENTIFIED BY regular_id)? CHAR_STRING? (NO? SALT)? )?  (inline_constraint* | inline_ref_constraint)
+    : column_name (datatype | type_name) columnDefinitionClause?
+         SORT?  (DEFAULT (ON NULL_)? expression columnLevelConstraintDefinition? )? (ENCRYPT (USING  CHAR_STRING)? (IDENTIFIED BY regular_id)? CHAR_STRING? (NO? SALT)? )?  (inline_constraint* | inline_ref_constraint) damengStorageClause?
     ;
 
 virtual_column_definition
